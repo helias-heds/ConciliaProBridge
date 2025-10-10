@@ -92,6 +92,14 @@ export default function Dashboard() {
     setTransactions(prev => [...prev, transaction]);
   };
 
+  const handleStatusChange = (transactionId: string, newStatus: Transaction["status"]) => {
+    setTransactions(prev =>
+      prev.map(t =>
+        t.id === transactionId ? { ...t, status: newStatus } : t
+      )
+    );
+  };
+
   const getFilteredTransactions = () => {
     switch (activeTab) {
       case "reconciled":
@@ -167,7 +175,10 @@ export default function Dashboard() {
         </TabsList>
 
         <TabsContent value={activeTab}>
-          <TransactionTable transactions={getFilteredTransactions()} />
+          <TransactionTable 
+            transactions={getFilteredTransactions()} 
+            onStatusChange={handleStatusChange}
+          />
         </TabsContent>
       </Tabs>
 
