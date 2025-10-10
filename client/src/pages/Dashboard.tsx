@@ -4,8 +4,9 @@ import { TransactionTable, Transaction } from "@/components/TransactionTable";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { AccountSelector } from "@/components/AccountSelector";
 import { ManualMatchDialog } from "@/components/ManualMatchDialog";
+import { AddTransactionDialog, NewTransaction } from "@/components/AddTransactionDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 //todo: remove mock functionality
@@ -72,11 +73,24 @@ const mockTransactions: Transaction[] = [
 
 export default function Dashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
 
-  const reconciledTransactions = mockTransactions.filter(t => t.status === "reconciled");
-  const pendingLedger = mockTransactions.filter(t => t.status === "pending-ledger");
-  const pendingStatement = mockTransactions.filter(t => t.status === "pending-statement");
+  const reconciledTransactions = transactions.filter(t => t.status === "reconciled");
+  const pendingLedger = transactions.filter(t => t.status === "pending-ledger");
+  const pendingStatement = transactions.filter(t => t.status === "pending-statement");
+
+  const handleAddTransaction = (newTransaction: NewTransaction) => {
+    const transaction: Transaction = {
+      id: `manual-${Date.now()}`,
+      date: newTransaction.date,
+      description: newTransaction.description,
+      value: newTransaction.value,
+      status: "pending-ledger",
+    };
+    setTransactions(prev => [...prev, transaction]);
+  };
 
   const getFilteredTransactions = () => {
     switch (activeTab) {
@@ -87,7 +101,7 @@ export default function Dashboard() {
       case "pending-statement":
         return pendingStatement;
       default:
-        return mockTransactions;
+        return transactions;
     }
   };
 
@@ -106,27 +120,31 @@ export default function Dashboard() {
         <Button variant="outline" onClick={() => setDialogOpen(true)} data-testid="button-manual-match">
           Correspondência Manual
         </Button>
+        <Button onClick={() => setAddDialogOpen(true)} data-testid="button-add-transaction">
+          <Plus className="h-4 w-4 mr-2" />
+          Nova Transação
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatusCard
           title="Conciliados"
           value={reconciledTransactions.length}
-          total={mockTransactions.length}
+          total={transactions.length}
           icon={CheckCircle2}
           variant="success"
         />
         <StatusCard
           title="Pendentes na Planilha"
           value={pendingLedger.length}
-          total={mockTransactions.length}
+          total={transactions.length}
           icon={Clock}
           variant="warning"
         />
         <StatusCard
           title="Pendentes no Extrato"
           value={pendingStatement.length}
-          total={mockTransactions.length}
+          total={transactions.length}
           icon={AlertCircle}
           variant="error"
         />
@@ -135,7 +153,7 @@ export default function Dashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" data-testid="tab-all">
-            Todas ({mockTransactions.length})
+            Todas ({transactions.length})
           </TabsTrigger>
           <TabsTrigger value="reconciled" data-testid="tab-reconciled">
             Conciliadas ({reconciledTransactions.length})
@@ -169,6 +187,12 @@ export default function Dashboard() {
           source: "Extrato Bancário",
         }}
         confidence={87}
+      />
+
+      <AddTransactionDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onAdd={handleAddTransaction}
       />
     </div>
   );
