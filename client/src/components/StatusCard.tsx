@@ -4,19 +4,20 @@ import { LucideIcon } from "lucide-react";
 interface StatusCardProps {
   title: string;
   value: number;
-  total: number;
+  total?: number;
   icon: LucideIcon;
-  variant: "success" | "warning" | "error";
+  variant?: "success" | "warning" | "error" | "default";
 }
 
-export function StatusCard({ title, value, total, icon: Icon, variant }: StatusCardProps) {
+export function StatusCard({ title, value, total, icon: Icon, variant = "default" }: StatusCardProps) {
   const variantStyles = {
     success: "text-chart-2",
     warning: "text-chart-3",
     error: "text-chart-4",
+    default: "text-muted-foreground",
   };
 
-  const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+  const percentage = total ? (total > 0 ? Math.round((value / total) * 100) : 0) : null;
 
   return (
     <Card>
@@ -28,9 +29,11 @@ export function StatusCard({ title, value, total, icon: Icon, variant }: StatusC
         <div className="text-2xl font-semibold tabular-nums" data-testid={`text-${variant}-count`}>
           {value}
         </div>
-        <p className="text-xs text-muted-foreground mt-1">
-          {percentage}% do total ({total} transações)
-        </p>
+        {percentage !== null && total !== undefined && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {percentage}% do total ({total} transações)
+          </p>
+        )}
       </CardContent>
     </Card>
   );

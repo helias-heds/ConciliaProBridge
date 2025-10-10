@@ -9,15 +9,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { MoreVertical, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 
 export interface Transaction {
   id: string;
@@ -31,10 +25,10 @@ export interface Transaction {
 interface TransactionTableProps {
   transactions: Transaction[];
   onSelectionChange?: (selectedIds: string[]) => void;
-  onStatusChange?: (transactionId: string, newStatus: Transaction["status"]) => void;
+  onTransactionClick?: (transaction: Transaction) => void;
 }
 
-export function TransactionTable({ transactions, onSelectionChange, onStatusChange }: TransactionTableProps) {
+export function TransactionTable({ transactions, onSelectionChange, onTransactionClick }: TransactionTableProps) {
   const getStatusBadge = (status: Transaction["status"]) => {
     const variants = {
       reconciled: { label: "Conciliado", variant: "default" as const, color: "bg-chart-2 text-white border-chart-2" },
@@ -95,42 +89,14 @@ export function TransactionTable({ transactions, onSelectionChange, onStatusChan
                 )}
               </TableCell>
               <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" data-testid={`button-actions-${transaction.id}`}>
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {transaction.status !== "reconciled" && (
-                      <DropdownMenuItem
-                        onClick={() => onStatusChange?.(transaction.id, "reconciled")}
-                        data-testid={`action-reconcile-${transaction.id}`}
-                      >
-                        <CheckCircle2 className="mr-2 h-4 w-4 text-chart-2" />
-                        Marcar como Conciliado
-                      </DropdownMenuItem>
-                    )}
-                    {transaction.status !== "pending-ledger" && (
-                      <DropdownMenuItem
-                        onClick={() => onStatusChange?.(transaction.id, "pending-ledger")}
-                        data-testid={`action-pending-ledger-${transaction.id}`}
-                      >
-                        <Clock className="mr-2 h-4 w-4 text-chart-3" />
-                        Mover para Pendente Planilha
-                      </DropdownMenuItem>
-                    )}
-                    {transaction.status !== "pending-statement" && (
-                      <DropdownMenuItem
-                        onClick={() => onStatusChange?.(transaction.id, "pending-statement")}
-                        data-testid={`action-pending-statement-${transaction.id}`}
-                      >
-                        <AlertCircle className="mr-2 h-4 w-4 text-chart-4" />
-                        Mover para Pendente Extrato
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => onTransactionClick?.(transaction)}
+                  data-testid={`button-actions-${transaction.id}`}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}

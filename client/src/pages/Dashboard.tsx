@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { StatusCard } from "@/components/StatusCard";
 import { TransactionTable, Transaction } from "@/components/TransactionTable";
+import { TransactionSheet } from "@/components/TransactionSheet";
+import { TrashView } from "@/components/TrashView";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { AccountSelector } from "@/components/AccountSelector";
 import { ManualMatchDialog } from "@/components/ManualMatchDialog";
 import { AddTransactionDialog, NewTransaction } from "@/components/AddTransactionDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, Clock, AlertCircle, Plus } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 //todo: remove mock functionality
@@ -74,8 +76,11 @@ const mockTransactions: Transaction[] = [
 export default function Dashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
+  const [trashedTransactions, setTrashedTransactions] = useState<Array<Transaction & { deletedAt: Date }>>([]);
 
   const reconciledTransactions = transactions.filter(t => t.status === "reconciled");
   const pendingLedger = transactions.filter(t => t.status === "pending-ledger");
@@ -92,12 +97,27 @@ export default function Dashboard() {
     setTransactions(prev => [...prev, transaction]);
   };
 
-  const handleStatusChange = (transactionId: string, newStatus: Transaction["status"]) => {
+  const handleTransactionClick = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setSheetOpen(true);
+  };
+
+  const handleUpdateTransaction = (id: string, updates: Partial<Transaction>) => {
     setTransactions(prev =>
       prev.map(t =>
-        t.id === transactionId ? { ...t, status: newStatus } : t
+        t.id === id ? { ...t, ...updates } : t
       )
     );
+  };
+
+  const handleDeleteTransaction = (id: string) => {
+    const transaction = transactions.find(t => t.id === id);
+    if (transaction) {
+      // Move to trash with deletion timestamp
+      setTrashedTransactions(prev => [...prev, { ...transaction, deletedAt: new Date() }]);
+      // Remove from active transactions
+      setTransactions(prev => prev.filter(t => t.id !== id));
+    }
   };
 
   const getFilteredTransactions = () => {
@@ -134,7 +154,7 @@ export default function Dashboard() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatusCard
           title="Conciliados"
           value={reconciledTransactions.length}
@@ -156,6 +176,12 @@ export default function Dashboard() {
           icon={AlertCircle}
           variant="error"
         />
+        <StatusCard
+          title="Lixeira"
+          value={trashedTransactions.length}
+          icon={Trash2}
+          variant="default"
+        />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -172,13 +198,33 @@ export default function Dashboard() {
           <TabsTrigger value="pending-statement" data-testid="tab-pending-statement">
             Pendentes Extrato ({pendingStatement.length})
           </TabsTrigger>
+          <TabsTrigger value="trash" data-testid="tab-trash">
+            Lixeira ({trashedTransactions.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab}>
-          <TransactionTable 
-            transactions={getFilteredTransactions()} 
-            onStatusChange={handleStatusChange}
-          />
+          {activeTab === "trash" ? (
+            <TrashView 
+              trashedTransactions={trashedTransactions}
+              onRestore={(id) => {
+                const trashed = trashedTransactions.find(t => t.id === id);
+                if (trashed) {
+                  const { deletedAt, ...transaction } = trashed;
+                  setTransactions(prev => [...prev, transaction]);
+                  setTrashedTransactions(prev => prev.filter(t => t.id !== id));
+                }
+              }}
+              onPermanentDelete={(id) => {
+                setTrashedTransactions(prev => prev.filter(t => t.id !== id));
+              }}
+            />
+          ) : (
+            <TransactionTable 
+              transactions={getFilteredTransactions()} 
+              onTransactionClick={handleTransactionClick}
+            />
+          )}
         </TabsContent>
       </Tabs>
 
@@ -204,6 +250,14 @@ export default function Dashboard() {
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onAdd={handleAddTransaction}
+      />
+
+      <TransactionSheet
+        transaction={selectedTransaction}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onUpdate={handleUpdateTransaction}
+        onDelete={handleDeleteTransaction}
       />
     </div>
   );
