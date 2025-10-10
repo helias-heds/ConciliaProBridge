@@ -1,0 +1,68 @@
+Nome do Projeto: Conciliação Pro
+
+1. Funcionalidades Principais do Usuário
+
+O sistema deve permitir a conciliação automática entre três fontes de dados:
+
+Planilha de Lançamentos (Google Sheets/Excel): Arquivo armazenado no Google Drive ou importado (formato .xlsx ou .csv).
+
+Extrato Bancário: Arquivo importado nos formatos .OFX e .CSV.
+
+Extrato de Cartão de Crédito: Arquivo importado nos formatos .OFX e .CSV.
+
+O aplicativo deve executar as seguintes ações:
+
+Importação e Sincronização: Permitir que o usuário conecte a planilha de lançamentos do Google Drive (Google Sheets) para leitura em tempo real e faça o upload dos arquivos de extrato (.OFX / .CSV).
+
+Algoritmo de Correspondência (Conciliação):
+
+Desenvolver um algoritmo inteligente que cruze os lançamentos da planilha (conta a pagar/receber) com as transações dos extratos bancários e de cartão de crédito.
+
+A correspondência deve ser baseada em Valor, Data (com margem de erro de +/- 1-2 dias) e Descrição/Histórico (usando análise de similaridade textual).
+
+A conciliação deve ser exibida em tempo real.
+
+Visualização Clara dos Status: O sistema deve categorizar e exibir os lançamentos em três seções principais:
+
+Conciliados (OK): Pagamentos que foram encontrados e batem perfeitamente em todas as fontes (Planilha E Banco E Cartão, se aplicável).
+
+Pendentes na Planilha (A Pagar/Receber): Lançamentos que estão apenas na Planilha, mas não foram encontrados nos extratos (Pagamentos a serem efetuados ou recebimentos a serem compensados).
+
+Pendentes no Extrato (Lançar/Ajustar): Lançamentos que estão apenas nos Extratos Bancários/Cartão, mas não foram encontrados na planilha (Taxas bancárias, pagamentos inesperados, ou transações que precisam ser registradas na planilha).
+
+2. Fluxo de Usuário (Passos Essenciais)
+
+O projeto deve descrever o fluxo do usuário, incluindo:
+
+Tela de Boas-Vindas/Login.
+
+Tela de Conexão de Dados:
+
+Opção para conectar Google Drive (autorização de acesso ao Google Sheets).
+
+Área de upload para arquivos .OFX e .CSV.
+
+Tela de Dashboard/Conciliação:
+
+Um painel central onde o usuário seleciona o período e a conta a ser conciliada.
+
+Exibição dos resultados da conciliação em tempo real, com a divisão clara entre Conciliados, Pendentes na Planilha e Pendentes no Extrato.
+
+Ações Manuais: Permitir que o usuário confirme ou vincule manualmente lançamentos pendentes que o algoritmo não conseguiu conciliar automaticamente.
+
+3. Aspectos Técnicos e de Arquitetura
+
+Descreva a arquitetura sugerida para o projeto:
+
+Tecnologias de Frontend e Backend (Sugira um stack moderno, como React/Vue/Angular para o Front e Python/Node.js para o Back).
+
+Estrutura de Banco de Dados: Sugerir tabelas essenciais (e.g., Usuarios, Contas, Transacoes_Planilha, Transacoes_Extrato, Conciliacao).
+
+Integrações-chave: API do Google Sheets/Google Drive para leitura.
+
+4. Tom e Estilo do Projeto
+
+Tom: Profissional, focado em clareza, automação e redução de erros.
+
+Entrega: O resultado da IA deve ser um documento de projeto, estruturado em tópicos, com detalhes suficientes para iniciar a fase de desenvolvimento.
+
