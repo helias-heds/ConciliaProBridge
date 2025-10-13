@@ -9,23 +9,23 @@ export default function Settings() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold mb-2">Configurações</h1>
+        <h1 className="text-3xl font-semibold mb-2">Settings</h1>
         <p className="text-muted-foreground">
-          Gerencie as configurações do sistema de conciliação
+          Manage reconciliation system settings
         </p>
       </div>
 
       <div className="grid gap-6 max-w-2xl">
         <Card>
           <CardHeader>
-            <CardTitle>Configurações de Correspondência</CardTitle>
+            <CardTitle>Matching Settings</CardTitle>
             <CardDescription>
-              Ajuste os parâmetros do algoritmo de conciliação
+              Adjust reconciliation algorithm parameters
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="date-tolerance">Tolerância de Data (dias)</Label>
+              <Label htmlFor="date-tolerance">Date Tolerance (days)</Label>
               <Input
                 id="date-tolerance"
                 type="number"
@@ -35,12 +35,12 @@ export default function Settings() {
                 data-testid="input-date-tolerance"
               />
               <p className="text-xs text-muted-foreground">
-                Margem de erro aceitável entre datas de transações (±dias)
+                Acceptable margin of error between transaction dates (±days)
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confidence-threshold">Limite de Confiança (%)</Label>
+              <Label htmlFor="confidence-threshold">Confidence Threshold (%)</Label>
               <Input
                 id="confidence-threshold"
                 type="number"
@@ -50,15 +50,15 @@ export default function Settings() {
                 data-testid="input-confidence-threshold"
               />
               <p className="text-xs text-muted-foreground">
-                Porcentagem mínima de similaridade para correspondência automática
+                Minimum similarity percentage for automatic matching
               </p>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Correspondência Automática</Label>
+                <Label>Automatic Matching</Label>
                 <p className="text-xs text-muted-foreground">
-                  Aprovar automaticamente correspondências com alta confiança
+                  Automatically approve high-confidence matches
                 </p>
               </div>
               <Switch defaultChecked data-testid="switch-auto-match" />
@@ -68,17 +68,17 @@ export default function Settings() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Notificações</CardTitle>
+            <CardTitle>Notifications</CardTitle>
             <CardDescription>
-              Configure as notificações do sistema
+              Configure system notifications
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Notificar Novas Correspondências</Label>
+                <Label>Notify New Matches</Label>
                 <p className="text-xs text-muted-foreground">
-                  Receber alertas quando novas correspondências forem encontradas
+                  Receive alerts when new matches are found
                 </p>
               </div>
               <Switch defaultChecked data-testid="switch-notify-matches" />
@@ -88,9 +88,9 @@ export default function Settings() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Notificar Pendências</Label>
+                <Label>Notify Pending Items</Label>
                 <p className="text-xs text-muted-foreground">
-                  Alertar sobre transações pendentes de conciliação
+                  Alert about transactions pending reconciliation
                 </p>
               </div>
               <Switch defaultChecked data-testid="switch-notify-pending" />
@@ -100,14 +100,14 @@ export default function Settings() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Exportação de Dados</CardTitle>
+            <CardTitle>Data Export</CardTitle>
             <CardDescription>
-              Configure as opções de exportação de relatórios
+              Configure report export options
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="export-format">Formato de Exportação</Label>
+              <Label htmlFor="export-format">Export Format</Label>
               <select
                 id="export-format"
                 className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors"
@@ -120,7 +120,7 @@ export default function Settings() {
             </div>
 
             <Button className="w-full" data-testid="button-save-settings">
-              Salvar Configurações
+              Save Settings
             </Button>
           </CardContent>
         </Card>

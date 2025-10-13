@@ -42,9 +42,9 @@ export function ManualMatchDialog({
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "BRL",
+      currency: "USD",
     }).format(value);
   };
 
@@ -52,29 +52,29 @@ export function ManualMatchDialog({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-96">
         <SheetHeader>
-          <SheetTitle>Confirmar Correspondência Manual</SheetTitle>
+          <SheetTitle>Confirm Manual Match</SheetTitle>
           <SheetDescription>
-            Revise os detalhes das transações e confirme a correspondência
+            Review transaction details and confirm the match
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Planilha</Badge>
+              <Badge variant="secondary">Ledger</Badge>
               <span className="text-sm text-muted-foreground">{sourceTransaction?.source}</span>
             </div>
             <div className="p-4 border rounded-md space-y-2">
               <p className="text-sm">
-                <span className="text-muted-foreground">Data:</span>{" "}
+                <span className="text-muted-foreground">Date:</span>{" "}
                 <span className="font-medium">{sourceTransaction?.date}</span>
               </p>
               <p className="text-sm">
-                <span className="text-muted-foreground">Descrição:</span>{" "}
+                <span className="text-muted-foreground">Description:</span>{" "}
                 <span className="font-medium">{sourceTransaction?.description}</span>
               </p>
               <p className="text-sm">
-                <span className="text-muted-foreground">Valor:</span>{" "}
+                <span className="text-muted-foreground">Amount:</span>{" "}
                 <span className="font-medium tabular-nums">
                   {sourceTransaction && formatCurrency(sourceTransaction.value)}
                 </span>
@@ -88,20 +88,20 @@ export function ManualMatchDialog({
 
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge variant="secondary">Extrato</Badge>
+              <Badge variant="secondary">Statement</Badge>
               <span className="text-sm text-muted-foreground">{targetTransaction?.source}</span>
             </div>
             <div className="p-4 border rounded-md space-y-2">
               <p className="text-sm">
-                <span className="text-muted-foreground">Data:</span>{" "}
+                <span className="text-muted-foreground">Date:</span>{" "}
                 <span className="font-medium">{targetTransaction?.date}</span>
               </p>
               <p className="text-sm">
-                <span className="text-muted-foreground">Descrição:</span>{" "}
+                <span className="text-muted-foreground">Description:</span>{" "}
                 <span className="font-medium">{targetTransaction?.description}</span>
               </p>
               <p className="text-sm">
-                <span className="text-muted-foreground">Valor:</span>{" "}
+                <span className="text-muted-foreground">Amount:</span>{" "}
                 <span className="font-medium tabular-nums">
                   {targetTransaction && formatCurrency(targetTransaction.value)}
                 </span>
@@ -111,7 +111,7 @@ export function ManualMatchDialog({
 
           <div className="p-4 bg-accent rounded-md">
             <p className="text-sm text-center">
-              <span className="text-muted-foreground">Confiança do algoritmo:</span>{" "}
+              <span className="text-muted-foreground">Algorithm confidence:</span>{" "}
               <span className="font-semibold text-foreground">{confidence}%</span>
             </p>
           </div>
@@ -123,14 +123,14 @@ export function ManualMatchDialog({
               onClick={handleReject}
               data-testid="button-reject-match"
             >
-              Rejeitar
+              Reject
             </Button>
             <Button
               className="flex-1"
               onClick={handleConfirmMatch}
               data-testid="button-confirm-match"
             >
-              Confirmar Correspondência
+              Confirm Match
             </Button>
           </div>
         </div>

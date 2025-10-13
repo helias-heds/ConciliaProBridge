@@ -311,16 +311,16 @@ export default function Dashboard() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         sourceTransaction={{
-          date: "15/01/2024",
-          description: "Pagamento Fornecedor ABC Ltda",
+          date: "01/15/2024",
+          description: "Vendor Payment ABC Corp",
           value: 1500.00,
-          source: "Planilha de Lançamentos",
+          source: "Ledger Spreadsheet",
         }}
         targetTransaction={{
-          date: "16/01/2024",
-          description: "PAG FORNEC ABC",
+          date: "01/16/2024",
+          description: "PMT VENDOR ABC",
           value: 1500.00,
-          source: "Extrato Bancário",
+          source: "Bank Statement",
         }}
         confidence={87}
       />
