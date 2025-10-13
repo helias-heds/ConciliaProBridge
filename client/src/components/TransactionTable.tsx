@@ -17,7 +17,7 @@ export interface Transaction {
   id: string;
   date: Date;
   name: string;
-  description: string;
+  car: string;
   value: number;
   status: "reconciled" | "pending-ledger" | "pending-statement";
   confidence?: number;
@@ -61,7 +61,7 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
               <Checkbox data-testid="checkbox-select-all" />
             </TableHead>
             <TableHead>Data</TableHead>
-            <TableHead>Nome / Descrição</TableHead>
+            <TableHead>Nome / Carro</TableHead>
             <TableHead className="text-right">Valor</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-center">Confiança</TableHead>
@@ -80,8 +80,8 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
               <TableCell>
                 <div className="space-y-0.5">
                   <div className="font-medium">{transaction.name}</div>
-                  {transaction.description && (
-                    <div className="text-sm text-muted-foreground">{transaction.description}</div>
+                  {transaction.car && (
+                    <div className="text-sm text-muted-foreground">{transaction.car}</div>
                   )}
                 </div>
               </TableCell>

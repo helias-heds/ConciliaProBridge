@@ -68,7 +68,7 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
         <TableHeader className="sticky top-0 bg-card">
           <TableRow>
             <TableHead>Data</TableHead>
-            <TableHead>Nome / Descrição</TableHead>
+            <TableHead>Nome / Carro</TableHead>
             <TableHead className="text-right">Valor</TableHead>
             <TableHead>Deletado em</TableHead>
             <TableHead className="text-center">Dias Restantes</TableHead>
@@ -86,8 +86,8 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
                 <TableCell>
                   <div className="space-y-0.5">
                     <div className="font-medium">{transaction.name}</div>
-                    {transaction.description && (
-                      <div className="text-sm text-muted-foreground">{transaction.description}</div>
+                    {transaction.car && (
+                      <div className="text-sm text-muted-foreground">{transaction.car}</div>
                     )}
                   </div>
                 </TableCell>

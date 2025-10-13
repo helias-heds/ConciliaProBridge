@@ -32,7 +32,7 @@ interface AddTransactionDialogProps {
 export interface NewTransaction {
   date: Date;
   name: string;
-  description: string;
+  car: string;
   value: number;
   type: "income" | "expense";
   source: "manual";
@@ -41,7 +41,7 @@ export interface NewTransaction {
 export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransactionDialogProps) {
   const [date, setDate] = useState<Date>(new Date());
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [car, setCar] = useState("");
   const [value, setValue] = useState("");
   const [type, setType] = useState<"income" | "expense">("expense");
 
@@ -54,7 +54,7 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
     const transaction: NewTransaction = {
       date,
       name,
-      description,
+      car,
       value: parseFloat(value),
       type,
       source: "manual",
@@ -65,7 +65,7 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
     
     // Reset form
     setName("");
-    setDescription("");
+    setCar("");
     setValue("");
     setType("expense");
     setDate(new Date());
@@ -133,13 +133,13 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição (Opcional)</Label>
+            <Label htmlFor="car">Carro (Opcional)</Label>
             <Input
-              id="description"
-              placeholder="Ex: Pagamento mensal referente a..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              data-testid="input-description"
+              id="car"
+              placeholder="Ex: Honda Civic 2020"
+              value={car}
+              onChange={(e) => setCar(e.target.value)}
+              data-testid="input-car"
             />
           </div>
 

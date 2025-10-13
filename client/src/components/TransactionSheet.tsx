@@ -24,7 +24,7 @@ export interface Transaction {
   id: string;
   date: Date;
   name: string;
-  description: string;
+  car: string;
   value: number;
   status: "reconciled" | "pending-ledger" | "pending-statement";
   confidence?: number;
@@ -46,7 +46,7 @@ export function TransactionSheet({
   onDelete,
 }: TransactionSheetProps) {
   const [name, setName] = useState(transaction?.name || "");
-  const [description, setDescription] = useState(transaction?.description || "");
+  const [car, setCar] = useState(transaction?.car || "");
   const [date, setDate] = useState(
     transaction?.date ? format(transaction.date, "yyyy-MM-dd") : ""
   );
@@ -58,7 +58,7 @@ export function TransactionSheet({
   // Update local state when transaction changes
   if (transaction && transaction.id !== (transaction as any)._lastId) {
     setName(transaction.name);
-    setDescription(transaction.description);
+    setCar(transaction.car);
     setDate(format(transaction.date, "yyyy-MM-dd"));
     setValue(transaction.value.toString());
     setStatus(transaction.status);
@@ -70,7 +70,7 @@ export function TransactionSheet({
 
     onUpdate(transaction.id, {
       name,
-      description,
+      car,
       date: new Date(date),
       value: parseFloat(value),
       status,
@@ -133,15 +133,15 @@ export function TransactionSheet({
             />
           </div>
 
-          {/* Descrição */}
+          {/* Carro */}
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
+            <Label htmlFor="car">Carro (Opcional)</Label>
             <Input
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Digite a descrição adicional"
-              data-testid="input-edit-description"
+              id="car"
+              value={car}
+              onChange={(e) => setCar(e.target.value)}
+              placeholder="Ex: Honda Civic 2020"
+              data-testid="input-edit-car"
             />
           </div>
 
