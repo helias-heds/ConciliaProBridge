@@ -10,11 +10,23 @@ The application provides a professional dashboard interface for financial data m
 
 ## Recent Changes (October 2025)
 
+### English Localization (October 13, 2025)
+- **Full System Translation**: Completed translation from Portuguese (pt-BR) to English (en-US)
+  - All UI components, pages, and labels converted to English
+  - Date formatting changed from dd/MM/yyyy to MM/dd/yyyy (US standard)
+  - Currency formatting changed from Brazilian Real (BRL/R$) to US Dollar (USD/$)
+  - Date-fns locale changed from pt-BR to en-US across all components
+- **Components Translated**:
+  - Dashboard, TransactionTable, TransactionSheet, AddTransactionDialog
+  - TrashView, AppSidebar, Help page, Upload page
+  - FileUploadZone, GoogleSheetsConnect, DateRangePicker
+- **Business Context**: System now serves US-based car financing company
+
 ### Filter Confirmation System (October 13, 2025)
 - **Implemented Two-Step Filter Workflow**: Users now select filters first, then explicitly apply them
   - Temporary filter state (`selectedDateRange`) separate from applied state (`appliedDateRange`)
-  - "Aplicar Filtros" button highlights with "!" badge when filters are pending
-  - "Limpar Filtros" button appears when filters are active, allowing easy reset
+  - "Apply Filters" button highlights with "!" badge when filters are pending
+  - "Clear Filters" button appears when filters are active, allowing easy reset
 - **Date Range Filtering**: Implemented using `isWithinInterval` from date-fns
   - Filters transactions between selected start and end dates
   - All status cards and tabs dynamically reflect filtered transaction counts
@@ -59,6 +71,7 @@ Preferred communication style: Simple, everyday language.
 - Separation of business logic from presentation components
 - Custom hooks for shared functionality (mobile detection, toast notifications)
 - Data-first hierarchy prioritizing information clarity over decorative elements
+- Full English (en-US) localization with US date and currency formatting
 
 ### Backend Architecture
 
@@ -119,7 +132,7 @@ Transactions are categorized into:
 - `drizzle-orm`: TypeScript ORM with schema validation
 - `@tanstack/react-query`: Data fetching and caching
 - `@radix-ui/*`: Accessible UI primitives (20+ components)
-- `date-fns`: Date manipulation and formatting (with pt-BR locale)
+- `date-fns`: Date manipulation and formatting (with en-US locale)
 - `react-day-picker`: Calendar and date range selection
 - `wouter`: Lightweight routing
 - `tailwindcss`: Utility-first CSS framework
