@@ -8,9 +8,23 @@ The system tracks customer payments for financed vehicles, allowing the finance 
 
 The application provides a professional dashboard interface for financial data management, file uploads, reconciliation workflows, and transaction tracking with support for both light and dark themes.
 
-## Recent Changes (January 2025)
+## Recent Changes (October 2025)
 
-### Transaction Data Model Updates
+### Filter Confirmation System (October 13, 2025)
+- **Implemented Two-Step Filter Workflow**: Users now select filters first, then explicitly apply them
+  - Temporary filter state (`selectedDateRange`) separate from applied state (`appliedDateRange`)
+  - "Aplicar Filtros" button highlights with "!" badge when filters are pending
+  - "Limpar Filtros" button appears when filters are active, allowing easy reset
+- **Date Range Filtering**: Implemented using `isWithinInterval` from date-fns
+  - Filters transactions between selected start and end dates
+  - All status cards and tabs dynamically reflect filtered transaction counts
+  - Semi-controlled DateRangePicker component with useEffect for state synchronization
+- **UI/UX Improvements**: 
+  - Visual feedback for pending filter changes
+  - Clear affordance for applying and clearing filters
+  - Consistent filtering across all dashboard views (tabs and cards)
+
+### Transaction Data Model Updates (January 2025)
 - **Added Car Field**: Transaction model now includes a dedicated `car` field (optional) to track which vehicle is associated with each payment
 - **Separated Name and Car**: Previously combined description field is now split into:
   - `name`: Customer payment identifier (e.g., "Recebimento Parcela - João Silva")

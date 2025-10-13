@@ -212,6 +212,18 @@ export default function Dashboard() {
             </Badge>
           )}
         </Button>
+        {appliedDateRange && (
+          <Button 
+            variant="ghost"
+            onClick={() => {
+              setSelectedDateRange(undefined);
+              setAppliedDateRange(undefined);
+            }}
+            data-testid="button-clear-filters"
+          >
+            Limpar Filtros
+          </Button>
+        )}
         <Button variant="outline" onClick={() => setDialogOpen(true)} data-testid="button-manual-match">
           Correspondência Manual
         </Button>
