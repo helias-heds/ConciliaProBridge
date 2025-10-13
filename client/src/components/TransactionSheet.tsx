@@ -23,6 +23,7 @@ import { format } from "date-fns";
 export interface Transaction {
   id: string;
   date: Date;
+  name: string;
   description: string;
   value: number;
   status: "reconciled" | "pending-ledger" | "pending-statement";
@@ -44,6 +45,7 @@ export function TransactionSheet({
   onUpdate,
   onDelete,
 }: TransactionSheetProps) {
+  const [name, setName] = useState(transaction?.name || "");
   const [description, setDescription] = useState(transaction?.description || "");
   const [date, setDate] = useState(
     transaction?.date ? format(transaction.date, "yyyy-MM-dd") : ""
@@ -55,6 +57,7 @@ export function TransactionSheet({
 
   // Update local state when transaction changes
   if (transaction && transaction.id !== (transaction as any)._lastId) {
+    setName(transaction.name);
     setDescription(transaction.description);
     setDate(format(transaction.date, "yyyy-MM-dd"));
     setValue(transaction.value.toString());
@@ -66,6 +69,7 @@ export function TransactionSheet({
     if (!transaction) return;
 
     onUpdate(transaction.id, {
+      name,
       description,
       date: new Date(date),
       value: parseFloat(value),
@@ -117,6 +121,18 @@ export function TransactionSheet({
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          {/* Nome */}
+          <div className="space-y-2">
+            <Label htmlFor="name">Nome</Label>
+            <Input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Digite o nome da transação"
+              data-testid="input-edit-name"
+            />
+          </div>
+
           {/* Descrição */}
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
@@ -124,7 +140,7 @@ export function TransactionSheet({
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Digite a descrição"
+              placeholder="Digite a descrição adicional"
               data-testid="input-edit-description"
             />
           </div>

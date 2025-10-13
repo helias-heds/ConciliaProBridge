@@ -31,6 +31,7 @@ interface AddTransactionDialogProps {
 
 export interface NewTransaction {
   date: Date;
+  name: string;
   description: string;
   value: number;
   type: "income" | "expense";
@@ -39,18 +40,20 @@ export interface NewTransaction {
 
 export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransactionDialogProps) {
   const [date, setDate] = useState<Date>(new Date());
+  const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [value, setValue] = useState("");
   const [type, setType] = useState<"income" | "expense">("expense");
 
   const handleAdd = () => {
-    if (!description || !value) {
+    if (!name || !value) {
       console.log("Missing required fields");
       return;
     }
 
     const transaction: NewTransaction = {
       date,
+      name,
       description,
       value: parseFloat(value),
       type,
@@ -61,6 +64,7 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
     onAdd?.(transaction);
     
     // Reset form
+    setName("");
     setDescription("");
     setValue("");
     setType("expense");
@@ -118,10 +122,21 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Descrição</Label>
+            <Label htmlFor="name">Nome</Label>
+            <Input
+              id="name"
+              placeholder="Ex: Pagamento de fornecedor"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              data-testid="input-name"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição (Opcional)</Label>
             <Input
               id="description"
-              placeholder="Ex: Pagamento de fornecedor"
+              placeholder="Ex: Pagamento mensal referente a..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               data-testid="input-description"

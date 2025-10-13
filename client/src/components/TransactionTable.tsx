@@ -16,6 +16,7 @@ import { MoreVertical } from "lucide-react";
 export interface Transaction {
   id: string;
   date: Date;
+  name: string;
   description: string;
   value: number;
   status: "reconciled" | "pending-ledger" | "pending-statement";
@@ -60,7 +61,7 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
               <Checkbox data-testid="checkbox-select-all" />
             </TableHead>
             <TableHead>Data</TableHead>
-            <TableHead>Descrição</TableHead>
+            <TableHead>Nome / Descrição</TableHead>
             <TableHead className="text-right">Valor</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-center">Confiança</TableHead>
@@ -76,7 +77,14 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
               <TableCell className="font-mono text-sm">
                 {format(transaction.date, "dd/MM/yyyy", { locale: ptBR })}
               </TableCell>
-              <TableCell>{transaction.description}</TableCell>
+              <TableCell>
+                <div className="space-y-0.5">
+                  <div className="font-medium">{transaction.name}</div>
+                  {transaction.description && (
+                    <div className="text-sm text-muted-foreground">{transaction.description}</div>
+                  )}
+                </div>
+              </TableCell>
               <TableCell className="text-right font-mono tabular-nums">
                 {formatCurrency(transaction.value)}
               </TableCell>
