@@ -8,8 +8,11 @@ import { AccountSelector } from "@/components/AccountSelector";
 import { ManualMatchDialog } from "@/components/ManualMatchDialog";
 import { AddTransactionDialog, NewTransaction } from "@/components/AddTransactionDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle2, Clock, AlertCircle, Plus, Trash2 } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, Plus, Trash2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { DateRange } from "react-day-picker";
+import { isWithinInterval } from "date-fns";
 
 //todo: remove mock functionality
 const mockAccounts = [
@@ -88,10 +91,48 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("all");
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [trashedTransactions, setTrashedTransactions] = useState<Array<Transaction & { deletedAt: Date }>>([]);
+  
+  // Filtros temporários (selecionados mas não aplicados)
+  const [selectedAccount, setSelectedAccount] = useState<string | undefined>(mockAccounts[0]?.id);
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>({
+    from: new Date(2024, 0, 1),
+    to: new Date(),
+  });
+  
+  // Filtros aplicados (em uso na filtragem)
+  const [appliedAccount, setAppliedAccount] = useState<string | undefined>(mockAccounts[0]?.id);
+  const [appliedDateRange, setAppliedDateRange] = useState<DateRange | undefined>({
+    from: new Date(2024, 0, 1),
+    to: new Date(),
+  });
+  
+  // Verifica se há filtros pendentes de aplicação
+  const hasUnappliedFilters = selectedAccount !== appliedAccount || 
+    JSON.stringify(selectedDateRange) !== JSON.stringify(appliedDateRange);
 
-  const reconciledTransactions = transactions.filter(t => t.status === "reconciled");
-  const pendingLedger = transactions.filter(t => t.status === "pending-ledger");
-  const pendingStatement = transactions.filter(t => t.status === "pending-statement");
+  // Aplica filtros de conta e data às transações
+  const getBaseFilteredTransactions = () => {
+    let filtered = transactions;
+    
+    // Filtro de data (se aplicado)
+    if (appliedDateRange?.from && appliedDateRange?.to) {
+      const startDate = appliedDateRange.from;
+      const endDate = appliedDateRange.to;
+      filtered = filtered.filter(t => 
+        isWithinInterval(t.date, { 
+          start: startDate, 
+          end: endDate 
+        })
+      );
+    }
+    
+    return filtered;
+  };
+
+  const baseFiltered = getBaseFilteredTransactions();
+  const reconciledTransactions = baseFiltered.filter(t => t.status === "reconciled");
+  const pendingLedger = baseFiltered.filter(t => t.status === "pending-ledger");
+  const pendingStatement = baseFiltered.filter(t => t.status === "pending-statement");
 
   const handleAddTransaction = (newTransaction: NewTransaction) => {
     const transaction: Transaction = {
@@ -128,6 +169,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleApplyFilters = () => {
+    setAppliedAccount(selectedAccount);
+    setAppliedDateRange(selectedDateRange);
+  };
+
   const getFilteredTransactions = () => {
     switch (activeTab) {
       case "reconciled":
@@ -137,7 +183,7 @@ export default function Dashboard() {
       case "pending-statement":
         return pendingStatement;
       default:
-        return transactions;
+        return baseFiltered;
     }
   };
 
@@ -151,8 +197,30 @@ export default function Dashboard() {
       </div>
 
       <div className="flex flex-wrap gap-4 items-center">
-        <AccountSelector accounts={mockAccounts} />
-        <DateRangePicker />
+        <AccountSelector 
+          accounts={mockAccounts} 
+          onAccountChange={setSelectedAccount}
+        />
+        <DateRangePicker 
+          onDateChange={setSelectedDateRange}
+        />
+        <Button 
+          variant={hasUnappliedFilters ? "default" : "outline"}
+          onClick={handleApplyFilters} 
+          data-testid="button-apply-filters"
+          className="relative"
+        >
+          <Filter className="h-4 w-4 mr-2" />
+          Aplicar Filtros
+          {hasUnappliedFilters && (
+            <Badge 
+              variant="destructive" 
+              className="ml-2 h-5 px-1.5"
+            >
+              !
+            </Badge>
+          )}
+        </Button>
         <Button variant="outline" onClick={() => setDialogOpen(true)} data-testid="button-manual-match">
           Correspondência Manual
         </Button>
