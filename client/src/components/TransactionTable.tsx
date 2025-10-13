@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { MoreVertical } from "lucide-react";
 
 export interface Transaction {
@@ -32,9 +32,9 @@ interface TransactionTableProps {
 export function TransactionTable({ transactions, onSelectionChange, onTransactionClick }: TransactionTableProps) {
   const getStatusBadge = (status: Transaction["status"]) => {
     const variants = {
-      reconciled: { label: "Conciliado", variant: "default" as const, color: "bg-chart-2 text-white border-chart-2" },
-      "pending-ledger": { label: "Pendente Planilha", variant: "secondary" as const, color: "bg-chart-3 text-white border-chart-3" },
-      "pending-statement": { label: "Pendente Extrato", variant: "destructive" as const, color: "bg-chart-4 text-white border-chart-4" },
+      reconciled: { label: "Reconciled", variant: "default" as const, color: "bg-chart-2 text-white border-chart-2" },
+      "pending-ledger": { label: "Pending Ledger", variant: "secondary" as const, color: "bg-chart-3 text-white border-chart-3" },
+      "pending-statement": { label: "Pending Statement", variant: "destructive" as const, color: "bg-chart-4 text-white border-chart-4" },
     };
     
     const config = variants[status];
@@ -46,9 +46,9 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "BRL",
+      currency: "USD",
     }).format(value);
   };
 
@@ -60,11 +60,11 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
             <TableHead className="w-12">
               <Checkbox data-testid="checkbox-select-all" />
             </TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead>Nome / Carro</TableHead>
-            <TableHead className="text-right">Valor</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Name / Car</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-center">Confiança</TableHead>
+            <TableHead className="text-center">Confidence</TableHead>
             <TableHead className="w-12"></TableHead>
           </TableRow>
         </TableHeader>
@@ -75,7 +75,7 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
                 <Checkbox data-testid={`checkbox-transaction-${transaction.id}`} />
               </TableCell>
               <TableCell className="font-mono text-sm">
-                {format(transaction.date, "dd/MM/yyyy", { locale: ptBR })}
+                {format(transaction.date, "MM/dd/yyyy", { locale: enUS })}
               </TableCell>
               <TableCell>
                 <div className="space-y-0.5">

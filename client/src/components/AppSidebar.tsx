@@ -18,17 +18,17 @@ const menuItems = [
     icon: LayoutDashboard,
   },
   {
-    title: "Upload de Arquivos",
+    title: "File Upload",
     url: "/upload",
     icon: Upload,
   },
   {
-    title: "Configurações",
+    title: "Settings",
     url: "/settings",
     icon: Settings,
   },
   {
-    title: "Ajuda",
+    title: "Help",
     url: "/help",
     icon: HelpCircle,
   },
@@ -41,7 +41,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (

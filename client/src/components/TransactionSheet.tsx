@@ -81,7 +81,7 @@ export function TransactionSheet({
   const handleDelete = () => {
     if (!transaction) return;
     
-    if (confirm("Tem certeza que deseja mover esta transação para a lixeira?")) {
+    if (confirm("Are you sure you want to move this transaction to trash?")) {
       onDelete(transaction.id);
       onOpenChange(false);
     }
@@ -90,17 +90,17 @@ export function TransactionSheet({
   const getStatusInfo = (status: Transaction["status"]) => {
     const statusMap = {
       reconciled: {
-        label: "Conciliado",
+        label: "Reconciled",
         icon: CheckCircle2,
         color: "text-chart-2",
       },
       "pending-ledger": {
-        label: "Pendente Planilha",
+        label: "Pending Ledger",
         icon: Clock,
         color: "text-chart-3",
       },
       "pending-statement": {
-        label: "Pendente Extrato",
+        label: "Pending Statement",
         icon: AlertCircle,
         color: "text-chart-4",
       },
@@ -114,28 +114,28 @@ export function TransactionSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-[400px] sm:w-[540px]" data-testid="sheet-transaction-edit">
         <SheetHeader>
-          <SheetTitle>Editar Transação</SheetTitle>
+          <SheetTitle>Edit Transaction</SheetTitle>
           <SheetDescription>
-            Altere os dados da transação ou mova para a lixeira.
+            Update transaction details or move to trash.
           </SheetDescription>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
-          {/* Nome */}
+          {/* Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Nome</Label>
+            <Label htmlFor="name">Name</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Digite o nome da transação"
+              placeholder="Enter transaction name"
               data-testid="input-edit-name"
             />
           </div>
 
-          {/* Carro */}
+          {/* Car */}
           <div className="space-y-2">
-            <Label htmlFor="car">Carro (Opcional)</Label>
+            <Label htmlFor="car">Car (Optional)</Label>
             <Input
               id="car"
               value={car}
@@ -145,9 +145,9 @@ export function TransactionSheet({
             />
           </div>
 
-          {/* Data */}
+          {/* Date */}
           <div className="space-y-2">
-            <Label htmlFor="date">Data</Label>
+            <Label htmlFor="date">Date</Label>
             <Input
               id="date"
               type="date"
@@ -157,16 +157,16 @@ export function TransactionSheet({
             />
           </div>
 
-          {/* Valor */}
+          {/* Amount */}
           <div className="space-y-2">
-            <Label htmlFor="value">Valor (R$)</Label>
+            <Label htmlFor="value">Amount (USD)</Label>
             <Input
               id="value"
               type="number"
               step="0.01"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder="0,00"
+              placeholder="0.00"
               data-testid="input-edit-value"
             />
           </div>
@@ -197,7 +197,7 @@ export function TransactionSheet({
 
           <Separator />
 
-          {/* Ações */}
+          {/* Actions */}
           <div className="flex flex-col gap-3">
             <Button
               onClick={handleSave}
@@ -205,7 +205,7 @@ export function TransactionSheet({
               data-testid="button-save-transaction"
             >
               <Save className="mr-2 h-4 w-4" />
-              Salvar Alterações
+              Save Changes
             </Button>
 
             <Button
@@ -215,12 +215,12 @@ export function TransactionSheet({
               data-testid="button-delete-transaction"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Mover para Lixeira
+              Move to Trash
             </Button>
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            Itens na lixeira são mantidos por 15 dias antes de serem excluídos permanentemente.
+            Trash items are kept for 15 days before being permanently deleted.
           </p>
         </div>
       </SheetContent>

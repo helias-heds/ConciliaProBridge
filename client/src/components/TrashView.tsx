@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { enUS } from "date-fns/locale";
 import { RotateCcw, Trash2 } from "lucide-react";
 import type { Transaction } from "./TransactionTable";
 
@@ -25,9 +25,9 @@ interface TrashViewProps {
 
 export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }: TrashViewProps) {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
+    return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "BRL",
+      currency: "USD",
     }).format(value);
   };
 
@@ -39,7 +39,7 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
   };
 
   const handlePermanentDelete = (id: string) => {
-    if (confirm("Tem certeza que deseja excluir permanentemente esta transação? Esta ação não pode ser desfeita.")) {
+    if (confirm("Are you sure you want to permanently delete this transaction? This action cannot be undone.")) {
       onPermanentDelete(id);
     }
   };
@@ -48,9 +48,9 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
     return (
       <div className="border rounded-md p-12 text-center">
         <Trash2 className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Lixeira Vazia</h3>
+        <h3 className="text-lg font-semibold mb-2">Trash is Empty</h3>
         <p className="text-sm text-muted-foreground">
-          Não há transações na lixeira no momento
+          There are no transactions in the trash
         </p>
       </div>
     );
@@ -60,19 +60,19 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
     <div className="border rounded-md">
       <div className="bg-muted/50 p-4 border-b">
         <p className="text-sm text-muted-foreground">
-          Itens na lixeira são automaticamente excluídos após 15 dias. Você pode restaurá-los ou excluí-los permanentemente a qualquer momento.
+          Items in trash are automatically deleted after 15 days. You can restore or permanently delete them at any time.
         </p>
       </div>
       
       <Table>
         <TableHeader className="sticky top-0 bg-card">
           <TableRow>
-            <TableHead>Data</TableHead>
-            <TableHead>Nome / Carro</TableHead>
-            <TableHead className="text-right">Valor</TableHead>
-            <TableHead>Deletado em</TableHead>
-            <TableHead className="text-center">Dias Restantes</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Name / Car</TableHead>
+            <TableHead className="text-right">Amount</TableHead>
+            <TableHead>Deleted At</TableHead>
+            <TableHead className="text-center">Days Remaining</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -81,7 +81,7 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
             return (
               <TableRow key={transaction.id} data-testid={`row-trash-${transaction.id}`}>
                 <TableCell className="font-mono text-sm">
-                  {format(transaction.date, "dd/MM/yyyy", { locale: ptBR })}
+                  {format(transaction.date, "MM/dd/yyyy", { locale: enUS })}
                 </TableCell>
                 <TableCell>
                   <div className="space-y-0.5">
@@ -95,11 +95,11 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
                   {formatCurrency(transaction.value)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {format(transaction.deletedAt, "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                  {format(transaction.deletedAt, "MM/dd/yyyy HH:mm", { locale: enUS })}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant={daysRemaining <= 3 ? "destructive" : "secondary"}>
-                    {daysRemaining} {daysRemaining === 1 ? "dia" : "dias"}
+                    {daysRemaining} {daysRemaining === 1 ? "day" : "days"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -111,7 +111,7 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
                       data-testid={`button-restore-${transaction.id}`}
                     >
                       <RotateCcw className="h-4 w-4 mr-2" />
-                      Restaurar
+                      Restore
                     </Button>
                     <Button
                       variant="destructive"
@@ -120,7 +120,7 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
                       data-testid={`button-permanent-delete-${transaction.id}`}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Excluir
+                      Delete
                     </Button>
                   </div>
                 </TableCell>
