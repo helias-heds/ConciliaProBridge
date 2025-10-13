@@ -93,22 +93,13 @@ export default function Dashboard() {
   const [trashedTransactions, setTrashedTransactions] = useState<Array<Transaction & { deletedAt: Date }>>([]);
   
   // Filtros temporários (selecionados mas não aplicados)
-  const [selectedAccount, setSelectedAccount] = useState<string | undefined>(mockAccounts[0]?.id);
-  const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>({
-    from: new Date(2024, 0, 1),
-    to: new Date(),
-  });
+  const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined);
   
   // Filtros aplicados (em uso na filtragem)
-  const [appliedAccount, setAppliedAccount] = useState<string | undefined>(mockAccounts[0]?.id);
-  const [appliedDateRange, setAppliedDateRange] = useState<DateRange | undefined>({
-    from: new Date(2024, 0, 1),
-    to: new Date(),
-  });
+  const [appliedDateRange, setAppliedDateRange] = useState<DateRange | undefined>(undefined);
   
   // Verifica se há filtros pendentes de aplicação
-  const hasUnappliedFilters = selectedAccount !== appliedAccount || 
-    JSON.stringify(selectedDateRange) !== JSON.stringify(appliedDateRange);
+  const hasUnappliedFilters = JSON.stringify(selectedDateRange) !== JSON.stringify(appliedDateRange);
 
   // Aplica filtros de conta e data às transações
   const getBaseFilteredTransactions = () => {
@@ -118,7 +109,8 @@ export default function Dashboard() {
     if (appliedDateRange?.from && appliedDateRange?.to) {
       const startDate = appliedDateRange.from;
       const endDate = appliedDateRange.to;
-      filtered = filtered.filter(t => 
+      
+      filtered = filtered.filter(t =>
         isWithinInterval(t.date, { 
           start: startDate, 
           end: endDate 
@@ -170,7 +162,6 @@ export default function Dashboard() {
   };
 
   const handleApplyFilters = () => {
-    setAppliedAccount(selectedAccount);
     setAppliedDateRange(selectedDateRange);
   };
 
@@ -198,10 +189,10 @@ export default function Dashboard() {
 
       <div className="flex flex-wrap gap-4 items-center">
         <AccountSelector 
-          accounts={mockAccounts} 
-          onAccountChange={setSelectedAccount}
+          accounts={mockAccounts}
         />
         <DateRangePicker 
+          value={selectedDateRange}
           onDateChange={setSelectedDateRange}
         />
         <Button 
@@ -234,21 +225,21 @@ export default function Dashboard() {
         <StatusCard
           title="Conciliados"
           value={reconciledTransactions.length}
-          total={transactions.length}
+          total={baseFiltered.length}
           icon={CheckCircle2}
           variant="success"
         />
         <StatusCard
           title="Pendentes na Planilha"
           value={pendingLedger.length}
-          total={transactions.length}
+          total={baseFiltered.length}
           icon={Clock}
           variant="warning"
         />
         <StatusCard
           title="Pendentes no Extrato"
           value={pendingStatement.length}
-          total={transactions.length}
+          total={baseFiltered.length}
           icon={AlertCircle}
           variant="error"
         />
@@ -263,7 +254,7 @@ export default function Dashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" data-testid="tab-all">
-            Todas ({transactions.length})
+            Todas ({baseFiltered.length})
           </TabsTrigger>
           <TabsTrigger value="reconciled" data-testid="tab-reconciled">
             Conciliadas ({reconciledTransactions.length})

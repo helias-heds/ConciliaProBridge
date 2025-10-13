@@ -8,18 +8,21 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DateRange } from "react-day-picker";
 
 interface DateRangePickerProps {
+  value?: DateRange | undefined;
   onDateChange?: (range: DateRange | undefined) => void;
 }
 
-export function DateRangePicker({ onDateChange }: DateRangePickerProps) {
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: new Date(2024, 0, 1),
-    to: new Date(),
-  });
+export function DateRangePicker({ value, onDateChange }: DateRangePickerProps) {
+  const [date, setDate] = useState<DateRange | undefined>(value);
+
+  // Sync with external value changes
+  useEffect(() => {
+    setDate(value);
+  }, [value]);
 
   const handleDateChange = (newDate: DateRange | undefined) => {
     setDate(newDate);
@@ -49,7 +52,7 @@ export function DateRangePicker({ onDateChange }: DateRangePickerProps) {
         <Calendar
           initialFocus
           mode="range"
-          defaultMonth={date?.from}
+          defaultMonth={new Date(2024, 0, 1)}
           selected={date}
           onSelect={handleDateChange}
           numberOfMonths={2}
