@@ -1,10 +1,21 @@
-# Conciliação Pro - Financial Reconciliation System
+# Conciliação Pro - Car Financing Reconciliation System
 
 ## Overview
 
-Conciliação Pro is an enterprise-grade financial reconciliation application designed to automatically match and reconcile transactions across three data sources: ledger spreadsheets (Google Sheets), bank statements, and credit card statements. The system uses intelligent matching algorithms based on value, date tolerance, and text similarity to identify corresponding transactions and categorize them into reconciled, pending ledger entries, and pending statement entries.
+Conciliação Pro is an enterprise-grade financial reconciliation application designed specifically for a car financing company. The system automatically matches and reconciles payment transactions (parcelas) across three data sources: ledger spreadsheets (Google Sheets), bank statements, and credit card statements. 
+
+The system tracks customer payments for financed vehicles, allowing the finance team to verify if received payments match the expected entries in their accounting ledger. Each transaction includes customer information, the financed car details, payment amounts, and reconciliation status.
 
 The application provides a professional dashboard interface for financial data management, file uploads, reconciliation workflows, and transaction tracking with support for both light and dark themes.
+
+## Recent Changes (January 2025)
+
+### Transaction Data Model Updates
+- **Added Car Field**: Transaction model now includes a dedicated `car` field (optional) to track which vehicle is associated with each payment
+- **Separated Name and Car**: Previously combined description field is now split into:
+  - `name`: Customer payment identifier (e.g., "Recebimento Parcela - João Silva")
+  - `car`: Vehicle information (e.g., "Honda Civic 2020")
+- **Business Context**: Supports car financing operations where payments need to be linked to specific financed vehicles
 
 ## User Preferences
 
