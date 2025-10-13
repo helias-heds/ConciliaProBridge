@@ -16,16 +16,16 @@ import { isWithinInterval } from "date-fns";
 
 //todo: remove mock functionality
 const mockAccounts = [
-  { id: "1", name: "Conta Corrente", type: "Banco do Brasil" },
-  { id: "2", name: "Conta Poupança", type: "Caixa Econômica" },
-  { id: "3", name: "Cartão Corporativo", type: "Visa" },
+  { id: "1", name: "Checking Account", type: "Bank of America" },
+  { id: "2", name: "Savings Account", type: "Wells Fargo" },
+  { id: "3", name: "Corporate Card", type: "Visa" },
 ];
 
 const mockTransactions: Transaction[] = [
   {
     id: "1",
     date: new Date("2024-01-15"),
-    name: "Recebimento Parcela - João Silva",
+    name: "Payment Receipt - John Smith",
     car: "Honda Civic 2020",
     value: 1500.00,
     status: "reconciled",
@@ -34,7 +34,7 @@ const mockTransactions: Transaction[] = [
   {
     id: "2",
     date: new Date("2024-01-16"),
-    name: "Recebimento Parcela - Maria Santos",
+    name: "Payment Receipt - Mary Johnson",
     car: "Toyota Corolla 2021",
     value: 3200.50,
     status: "reconciled",
@@ -43,8 +43,8 @@ const mockTransactions: Transaction[] = [
   {
     id: "3",
     date: new Date("2024-01-14"),
-    name: "Recebimento Parcela - Pedro Costa",
-    car: "Chevrolet Onix 2022",
+    name: "Payment Receipt - Robert Williams",
+    car: "Chevrolet Malibu 2022",
     value: 2500.00,
     status: "reconciled",
     confidence: 100,
@@ -52,23 +52,23 @@ const mockTransactions: Transaction[] = [
   {
     id: "4",
     date: new Date("2024-01-17"),
-    name: "Recebimento Parcela - Ana Lima",
-    car: "Fiat Argo 2023",
+    name: "Payment Receipt - Jennifer Davis",
+    car: "Ford Escape 2023",
     value: 450.00,
     status: "pending-ledger",
   },
   {
     id: "5",
     date: new Date("2024-01-17"),
-    name: "Recebimento Parcela - Carlos Oliveira",
-    car: "Volkswagen T-Cross 2022",
+    name: "Payment Receipt - Michael Brown",
+    car: "Volkswagen Jetta 2022",
     value: 890.00,
     status: "pending-ledger",
   },
   {
     id: "6",
     date: new Date("2024-01-18"),
-    name: "Taxa Bancária",
+    name: "Bank Fee",
     car: "",
     value: 35.00,
     status: "pending-statement",
@@ -76,8 +76,8 @@ const mockTransactions: Transaction[] = [
   {
     id: "7",
     date: new Date("2024-01-19"),
-    name: "Recebimento Parcela - Fernanda Rocha",
-    car: "Hyundai HB20 2021",
+    name: "Payment Receipt - Sarah Martinez",
+    car: "Hyundai Elantra 2021",
     value: 1250.00,
     status: "pending-statement",
   },
@@ -92,20 +92,20 @@ export default function Dashboard() {
   const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions);
   const [trashedTransactions, setTrashedTransactions] = useState<Array<Transaction & { deletedAt: Date }>>([]);
   
-  // Filtros temporários (selecionados mas não aplicados)
+  // Temporary filters (selected but not applied)
   const [selectedDateRange, setSelectedDateRange] = useState<DateRange | undefined>(undefined);
   
-  // Filtros aplicados (em uso na filtragem)
+  // Applied filters (in use for filtering)
   const [appliedDateRange, setAppliedDateRange] = useState<DateRange | undefined>(undefined);
   
-  // Verifica se há filtros pendentes de aplicação
+  // Check if there are pending filters to apply
   const hasUnappliedFilters = JSON.stringify(selectedDateRange) !== JSON.stringify(appliedDateRange);
 
-  // Aplica filtros de conta e data às transações
+  // Apply account and date filters to transactions
   const getBaseFilteredTransactions = () => {
     let filtered = transactions;
     
-    // Filtro de data (se aplicado)
+    // Date filter (if applied)
     if (appliedDateRange?.from && appliedDateRange?.to) {
       const startDate = appliedDateRange.from;
       const endDate = appliedDateRange.to;
@@ -181,9 +181,9 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold mb-2">Dashboard de Conciliação</h1>
+        <h1 className="text-3xl font-semibold mb-2">Reconciliation Dashboard</h1>
         <p className="text-muted-foreground">
-          Visão geral das transações e status de conciliação
+          Overview of transactions and reconciliation status
         </p>
       </div>
 
@@ -202,7 +202,7 @@ export default function Dashboard() {
           className="relative"
         >
           <Filter className="h-4 w-4 mr-2" />
-          Aplicar Filtros
+          Apply Filters
           {hasUnappliedFilters && (
             <Badge 
               variant="destructive" 
@@ -221,42 +221,42 @@ export default function Dashboard() {
             }}
             data-testid="button-clear-filters"
           >
-            Limpar Filtros
+            Clear Filters
           </Button>
         )}
         <Button variant="outline" onClick={() => setDialogOpen(true)} data-testid="button-manual-match">
-          Correspondência Manual
+          Manual Match
         </Button>
         <Button onClick={() => setAddDialogOpen(true)} data-testid="button-add-transaction">
           <Plus className="h-4 w-4 mr-2" />
-          Nova Transação
+          New Transaction
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <StatusCard
-          title="Conciliados"
+          title="Reconciled"
           value={reconciledTransactions.length}
           total={baseFiltered.length}
           icon={CheckCircle2}
           variant="success"
         />
         <StatusCard
-          title="Pendentes na Planilha"
+          title="Pending Ledger"
           value={pendingLedger.length}
           total={baseFiltered.length}
           icon={Clock}
           variant="warning"
         />
         <StatusCard
-          title="Pendentes no Extrato"
+          title="Pending Statement"
           value={pendingStatement.length}
           total={baseFiltered.length}
           icon={AlertCircle}
           variant="error"
         />
         <StatusCard
-          title="Lixeira"
+          title="Trash"
           value={trashedTransactions.length}
           icon={Trash2}
           variant="default"
@@ -266,19 +266,19 @@ export default function Dashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
           <TabsTrigger value="all" data-testid="tab-all">
-            Todas ({baseFiltered.length})
+            All ({baseFiltered.length})
           </TabsTrigger>
           <TabsTrigger value="reconciled" data-testid="tab-reconciled">
-            Conciliadas ({reconciledTransactions.length})
+            Reconciled ({reconciledTransactions.length})
           </TabsTrigger>
           <TabsTrigger value="pending-ledger" data-testid="tab-pending-ledger">
-            Pendentes Planilha ({pendingLedger.length})
+            Pending Ledger ({pendingLedger.length})
           </TabsTrigger>
           <TabsTrigger value="pending-statement" data-testid="tab-pending-statement">
-            Pendentes Extrato ({pendingStatement.length})
+            Pending Statement ({pendingStatement.length})
           </TabsTrigger>
           <TabsTrigger value="trash" data-testid="tab-trash">
-            Lixeira ({trashedTransactions.length})
+            Trash ({trashedTransactions.length})
           </TabsTrigger>
         </TabsList>
 
