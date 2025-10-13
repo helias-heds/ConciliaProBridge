@@ -8,9 +8,9 @@ export default function Help() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold mb-2">Central de Ajuda</h1>
+        <h1 className="text-3xl font-semibold mb-2">Help Center</h1>
         <p className="text-muted-foreground">
-          Encontre respostas para suas dúvidas sobre o sistema
+          Find answers to your questions about the system
         </p>
       </div>
 
@@ -19,67 +19,67 @@ export default function Help() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <HelpCircle className="h-5 w-5" />
-              Perguntas Frequentes
+              Frequently Asked Questions
             </CardTitle>
             <CardDescription>
-              Respostas para as dúvidas mais comuns
+              Answers to common questions
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="item-1">
-                <AccordionTrigger>Como funciona o algoritmo de conciliação?</AccordionTrigger>
+                <AccordionTrigger>How does the reconciliation algorithm work?</AccordionTrigger>
                 <AccordionContent>
-                  O algoritmo compara transações baseado em três critérios principais: valor (correspondência exata),
-                  data (com tolerância de ±2 dias) e descrição (usando análise de similaridade textual). 
-                  Cada correspondência recebe uma pontuação de confiança de 0-100%.
+                  The algorithm compares transactions based on three main criteria: amount (exact match),
+                  date (with ±2 day tolerance), and description (using text similarity analysis). 
+                  Each match receives a confidence score from 0-100%.
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-2">
-                <AccordionTrigger>Quais formatos de arquivo são aceitos?</AccordionTrigger>
+                <AccordionTrigger>What file formats are accepted?</AccordionTrigger>
                 <AccordionContent>
-                  O sistema aceita arquivos .OFX (Open Financial Exchange) e .CSV (Comma-Separated Values) 
-                  para extratos bancários e de cartão de crédito. Para planilhas, utilizamos integração 
-                  direta com Google Sheets.
+                  The system accepts .OFX (Open Financial Exchange) and .CSV (Comma-Separated Values) 
+                  files for bank and credit card statements. For ledgers, we use direct integration 
+                  with Google Sheets.
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-3">
-                <AccordionTrigger>O que significa cada status de transação?</AccordionTrigger>
+                <AccordionTrigger>What does each transaction status mean?</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-chart-2 text-white border-chart-2">Conciliado</Badge>
-                      <span className="text-sm">Transação encontrada em todas as fontes</span>
+                      <Badge className="bg-chart-2 text-white border-chart-2">Reconciled</Badge>
+                      <span className="text-sm">Transaction found in all sources</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-chart-3 text-white border-chart-3">Pendente Planilha</Badge>
-                      <span className="text-sm">Apenas na planilha, aguardando confirmação bancária</span>
+                      <Badge className="bg-chart-3 text-white border-chart-3">Pending Ledger</Badge>
+                      <span className="text-sm">Only in ledger, awaiting bank confirmation</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className="bg-chart-4 text-white border-chart-4">Pendente Extrato</Badge>
-                      <span className="text-sm">Apenas no extrato, precisa ser registrado na planilha</span>
+                      <Badge className="bg-chart-4 text-white border-chart-4">Pending Statement</Badge>
+                      <span className="text-sm">Only in statement, needs to be recorded in ledger</span>
                     </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-4">
-                <AccordionTrigger>Como fazer correspondência manual?</AccordionTrigger>
+                <AccordionTrigger>How do I do manual matching?</AccordionTrigger>
                 <AccordionContent>
-                  No Dashboard, clique no botão "Correspondência Manual". Você verá as transações pendentes 
-                  e poderá vincular manualmente aquelas que o algoritmo não conseguiu identificar automaticamente.
-                  Revise os detalhes e confirme a correspondência.
+                  On the Dashboard, click the "Manual Match" button. You'll see pending transactions 
+                  and can manually link those that the algorithm couldn't identify automatically.
+                  Review the details and confirm the match.
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-5">
-                <AccordionTrigger>Como conectar minha planilha do Google Sheets?</AccordionTrigger>
+                <AccordionTrigger>How do I connect my Google Sheets spreadsheet?</AccordionTrigger>
                 <AccordionContent>
-                  Na página "Upload de Arquivos", você encontrará a seção de conexão com Google Sheets.
-                  Você precisará de uma chave API do Google Cloud Console e a URL da sua planilha.
-                  Após inserir estas informações, clique em "Conectar Planilha".
+                  On the "File Upload" page, you'll find the Google Sheets connection section.
+                  You'll need a Google Cloud Console API key and your spreadsheet URL.
+                  After entering this information, click "Connect Spreadsheet".
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -90,10 +90,10 @@ export default function Help() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Guia de Início Rápido
+              Quick Start Guide
             </CardTitle>
             <CardDescription>
-              Primeiros passos com o Conciliação Pro
+              First steps with Reconciliation Pro
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -104,9 +104,9 @@ export default function Help() {
                 </div>
               </div>
               <div>
-                <h4 className="font-medium mb-1">Conecte sua Planilha</h4>
+                <h4 className="font-medium mb-1">Connect Your Spreadsheet</h4>
                 <p className="text-sm text-muted-foreground">
-                  Configure a integração com Google Sheets para sincronizar seus lançamentos
+                  Set up Google Sheets integration to sync your ledger entries
                 </p>
               </div>
             </div>
@@ -118,9 +118,9 @@ export default function Help() {
                 </div>
               </div>
               <div>
-                <h4 className="font-medium mb-1">Faça Upload dos Extratos</h4>
+                <h4 className="font-medium mb-1">Upload Statements</h4>
                 <p className="text-sm text-muted-foreground">
-                  Importe seus extratos bancários e de cartão nos formatos OFX ou CSV
+                  Import your bank and card statements in OFX or CSV formats
                 </p>
               </div>
             </div>
@@ -132,9 +132,9 @@ export default function Help() {
                 </div>
               </div>
               <div>
-                <h4 className="font-medium mb-1">Revise as Correspondências</h4>
+                <h4 className="font-medium mb-1">Review Matches</h4>
                 <p className="text-sm text-muted-foreground">
-                  Verifique as transações conciliadas automaticamente e confirme correspondências manuais
+                  Check automatically reconciled transactions and confirm manual matches
                 </p>
               </div>
             </div>
@@ -146,9 +146,9 @@ export default function Help() {
                 </div>
               </div>
               <div>
-                <h4 className="font-medium mb-1">Exporte Relatórios</h4>
+                <h4 className="font-medium mb-1">Export Reports</h4>
                 <p className="text-sm text-muted-foreground">
-                  Gere relatórios detalhados da conciliação para análise e auditoria
+                  Generate detailed reconciliation reports for analysis and audit
                 </p>
               </div>
             </div>
@@ -157,14 +157,14 @@ export default function Help() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Precisa de Mais Ajuda?</CardTitle>
+            <CardTitle>Need More Help?</CardTitle>
             <CardDescription>
-              Entre em contato com nossa equipe de suporte
+              Contact our support team
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button className="w-full" data-testid="button-contact-support">
-              Contatar Suporte
+              Contact Support
             </Button>
           </CardContent>
         </Card>

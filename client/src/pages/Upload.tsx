@@ -42,9 +42,9 @@ export default function Upload() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold mb-2">Upload de Arquivos</h1>
+        <h1 className="text-3xl font-semibold mb-2">File Upload</h1>
         <p className="text-muted-foreground">
-          Conecte sua planilha e importe extratos bancários e de cartão
+          Connect your spreadsheet and import bank and card statements
         </p>
       </div>
 
@@ -53,9 +53,9 @@ export default function Upload() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Upload de Extratos</CardTitle>
+            <CardTitle>Statement Upload</CardTitle>
             <CardDescription>
-              Faça upload dos extratos bancários e de cartão de crédito
+              Upload bank and credit card statements
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -71,7 +71,7 @@ export default function Upload() {
         <>
           <Separator />
           <div>
-            <h2 className="text-xl font-semibold mb-4">Arquivos Carregados</h2>
+            <h2 className="text-xl font-semibold mb-4">Uploaded Files</h2>
             <div className="space-y-2">
               {uploadedFiles.map((file) => (
                 <div

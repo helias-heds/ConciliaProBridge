@@ -45,7 +45,7 @@ export function FileUploadZone({ onFilesSelected, acceptedFormats }: FileUploadZ
     >
       <Upload className="h-10 w-10 text-muted-foreground mb-4" />
       <p className="text-sm text-center text-muted-foreground mb-2">
-        Arraste arquivos aqui ou clique para selecionar
+        Drag files here or click to select
       </p>
       <input
         type="file"
@@ -60,7 +60,7 @@ export function FileUploadZone({ onFilesSelected, acceptedFormats }: FileUploadZ
         htmlFor="file-input"
         className="text-sm font-medium text-primary cursor-pointer hover:underline"
       >
-        Selecionar arquivos
+        Select files
       </label>
       <div className="flex gap-2 mt-4 flex-wrap justify-center">
         {acceptedFormats.map((format) => (

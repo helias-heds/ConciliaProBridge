@@ -18,29 +18,29 @@ export function GoogleSheetsConnect() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <SiGooglesheets className="h-6 w-6 text-chart-2" />
-          <CardTitle>Conectar Google Sheets</CardTitle>
+          <CardTitle>Connect Google Sheets</CardTitle>
         </div>
         <CardDescription>
-          Conecte sua planilha de lançamentos para sincronização automática
+          Connect your ledger spreadsheet for automatic synchronization
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="api-key">Chave API do Google</Label>
+          <Label htmlFor="api-key">Google API Key</Label>
           <Input
             id="api-key"
             type="password"
-            placeholder="Cole sua chave API aqui"
+            placeholder="Paste your API key here"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
             data-testid="input-api-key"
           />
           <p className="text-xs text-muted-foreground">
-            Obtenha sua chave API no Google Cloud Console
+            Get your API key from Google Cloud Console
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="sheet-url">URL da Planilha</Label>
+          <Label htmlFor="sheet-url">Spreadsheet URL</Label>
           <Input
             id="sheet-url"
             type="url"
@@ -51,7 +51,7 @@ export function GoogleSheetsConnect() {
           />
         </div>
         <Button onClick={handleConnect} className="w-full" data-testid="button-connect-sheets">
-          Conectar Planilha
+          Connect Spreadsheet
         </Button>
       </CardContent>
     </Card>
