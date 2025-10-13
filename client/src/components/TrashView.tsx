@@ -68,7 +68,7 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
         <TableHeader className="sticky top-0 bg-card">
           <TableRow>
             <TableHead>Data</TableHead>
-            <TableHead>Descrição</TableHead>
+            <TableHead>Nome / Descrição</TableHead>
             <TableHead className="text-right">Valor</TableHead>
             <TableHead>Deletado em</TableHead>
             <TableHead className="text-center">Dias Restantes</TableHead>
@@ -83,7 +83,14 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
                 <TableCell className="font-mono text-sm">
                   {format(transaction.date, "dd/MM/yyyy", { locale: ptBR })}
                 </TableCell>
-                <TableCell>{transaction.description}</TableCell>
+                <TableCell>
+                  <div className="space-y-0.5">
+                    <div className="font-medium">{transaction.name}</div>
+                    {transaction.description && (
+                      <div className="text-sm text-muted-foreground">{transaction.description}</div>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell className="text-right font-mono tabular-nums">
                   {formatCurrency(transaction.value)}
                 </TableCell>
