@@ -10,6 +10,25 @@ The application provides a professional dashboard interface for financial data m
 
 ## Recent Changes (October 2025)
 
+### CSV Reconciliation Implementation (October 14, 2025)
+- **Automatic Transaction Matching**: System now reconciles CSV bank statements with Google Sheets ledger data
+  - **Required matching criteria** (ALL must be met):
+    1. Date match with ±2 days tolerance
+    2. Exact value/amount match
+    3. Payment method MUST be "Zelle" (extracted from CSV description)
+    4. Customer/depositor name MUST match (CSV depositor vs. Sheet client/depositor)
+  - **CSV Parser enhancements**:
+    - Detects "Zelle" keyword in description and stores as paymentMethod
+    - Extracts depositor name from text after "from" keyword
+    - Example: "Zelle from John Smith" → paymentMethod="Zelle", depositor="John Smith"
+  - **Reconciliation Algorithm** (server/reconciliation.ts):
+    - Compares pending-statement (CSV) with pending-ledger (Google Sheets) transactions
+    - Calculates confidence score: date(25) + value(25) + Zelle(20) + name match(10-30) = 60-100%
+    - Updates matched transactions to "reconciled" status with confidence score
+    - Links transactions via matchedTransactionId field
+  - **Database Schema**: Added paymentMethod and matchedTransactionId fields to transactions table
+  - **UI Integration**: Upload page now has "Reconciliation" card with "Start Reconciliation" button
+
 ### Dashboard Real Data Integration (October 14, 2025)
 - **Removed Mock Data**: Dashboard now fetches real transactions from API using React Query
   - GET /api/transactions endpoint returns all transactions from in-memory storage
