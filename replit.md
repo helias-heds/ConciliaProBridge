@@ -45,6 +45,8 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
 -   Customer/depositor name must match (CSV depositor vs. Sheet client/depositor).
 -   Confidence score calculated based on date, value, Zelle, and name match.
 
+**Manual Reconciliation**: When automatic matching fails (e.g., partial name matches like "John Smith" vs "John Smth"), users can manually reconcile transactions via a Link2 icon button on pending transactions. The system shows candidate matches with opposite status (pending-ledger ↔ pending-statement), allows selection, and updates both to "reconciled" with 100% confidence. Backend validates complementary statuses and prevents self-reconciliation.
+
 ### Data Import Pipeline
 
 **Supported Formats**: OFX and CSV for bank/card statements; Google Sheets API for ledger spreadsheets.
