@@ -9,12 +9,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Download, ExternalLink } from "lucide-react";
+import { CheckCircle, Download, ExternalLink, Shield } from "lucide-react";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
 
 export function GoogleSheetsConnect() {
-  const [apiKey, setApiKey] = useState("");
   const [sheetUrl, setSheetUrl] = useState("");
   const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
@@ -25,7 +24,7 @@ export function GoogleSheetsConnect() {
 
   const connectMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/google-sheets/connect", { apiKey, sheetUrl });
+      const res = await apiRequest("POST", "/api/google-sheets/connect", { sheetUrl });
       return res.json();
     },
     onSuccess: (data: any) => {
@@ -33,7 +32,6 @@ export function GoogleSheetsConnect() {
         title: "Connection Successful",
         description: data.message || "Google Sheets connected successfully",
       });
-      setApiKey("");
       setSheetUrl("");
       setShowForm(false);
       queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/connection"] });
@@ -54,8 +52,8 @@ export function GoogleSheetsConnect() {
     },
     onSuccess: (data: any) => {
       toast({
-        title: "Import Info",
-        description: data.message || "Import completed",
+        title: "Import Successful",
+        description: data.message || `Imported ${data.count} transactions`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/connection"] });
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
@@ -70,11 +68,11 @@ export function GoogleSheetsConnect() {
   });
 
   const handleConnect = () => {
-    if (!apiKey || !sheetUrl) {
+    if (!sheetUrl) {
       toast({
         variant: "destructive",
         title: "Missing Information",
-        description: "Please provide both API key and spreadsheet URL",
+        description: "Please provide the spreadsheet URL",
       });
       return;
     }
@@ -123,6 +121,13 @@ export function GoogleSheetsConnect() {
                     </a>
                   </div>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    OAuth authentication managed by Replit
+                  </span>
+                </div>
                 
                 {connection.lastImportDate && (
                   <div className="flex items-center gap-2">
@@ -163,21 +168,16 @@ export function GoogleSheetsConnect() {
           </>
         ) : (
           <>
-            <div className="space-y-2">
-              <Label htmlFor="api-key">Google API Key</Label>
-              <Input
-                id="api-key"
-                type="password"
-                placeholder="Paste your API key here"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                disabled={connectMutation.isPending}
-                data-testid="input-api-key"
-              />
+            <div className="p-3 border rounded-md bg-muted/50 space-y-2">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Secure OAuth Authentication</span>
+              </div>
               <p className="text-xs text-muted-foreground">
-                Get your API key from Google Cloud Console
+                Authentication is managed securely by Replit. No API keys needed.
               </p>
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="sheet-url">Spreadsheet URL</Label>
               <Input
@@ -189,6 +189,9 @@ export function GoogleSheetsConnect() {
                 disabled={connectMutation.isPending}
                 data-testid="input-sheet-url"
               />
+              <p className="text-xs text-muted-foreground">
+                Paste the full URL of your Google Sheets spreadsheet
+              </p>
             </div>
             <div className="flex gap-2">
               <Button 

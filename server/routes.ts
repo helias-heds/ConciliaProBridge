@@ -5,6 +5,7 @@ import multer from "multer";
 import { parseFile } from "./parsers";
 import { insertTransactionSchema, insertGoogleSheetsConnectionSchema } from "@shared/schema";
 import { z } from "zod";
+import { importFromGoogleSheets } from "./googleSheets";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -129,16 +130,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/google-sheets/connect", async (req, res) => {
     try {
-      const data = insertGoogleSheetsConnectionSchema.extend({
-        apiKey: z.string().min(1, "API key is required"),
+      const schema = z.object({
         sheetUrl: z.string().url("Valid URL is required"),
-      }).parse(req.body);
+      });
+      
+      const data = schema.parse(req.body);
 
       const sheetIdMatch = data.sheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
       const sheetId = sheetIdMatch ? sheetIdMatch[1] : null;
 
+      if (!sheetId) {
+        return res.status(400).json({ error: "Could not extract sheet ID from URL. Please provide a valid Google Sheets URL." });
+      }
+
       const connection = await storage.saveGoogleSheetsConnection({
-        ...data,
+        apiKey: "managed-by-replit-integration",
+        sheetUrl: data.sheetUrl,
         sheetId,
         status: "connected",
       });
@@ -147,7 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Google Sheets connection saved successfully",
         connection: {
           ...connection,
-          apiKey: "***" + data.apiKey.slice(-4),
+          apiKey: "***",
         },
       });
     } catch (error: any) {
@@ -166,21 +173,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "No Google Sheets connection found. Please connect first." });
       }
 
+      if (!connection.sheetId) {
+        return res.status(400).json({ error: "Invalid sheet URL. Could not extract sheet ID." });
+      }
+
+      const sheetTransactions = await importFromGoogleSheets(connection.sheetId);
+      
+      const createdTransactions = [];
+      for (const sheetTx of sheetTransactions) {
+        const transaction = await storage.createTransaction({
+          date: sheetTx.date,
+          name: sheetTx.name,
+          value: sheetTx.value.toString(),
+          status: "pending-ledger",
+          source: "Google Sheets",
+          car: sheetTx.car || null,
+          confidence: null,
+        });
+        createdTransactions.push(transaction);
+      }
+
       await storage.updateGoogleSheetsConnection(connection.id, {
         lastImportDate: new Date(),
-        lastImportCount: 0,
+        lastImportCount: createdTransactions.length,
       });
 
       res.json({
-        message: "Import placeholder - Full Google Sheets API integration requires additional libraries",
-        note: "You can manually upload CSV exports from your Google Sheet in the meantime. To implement full Google Sheets API, install googleapis package and use Sheets API v4.",
+        message: `Successfully imported ${createdTransactions.length} transactions from Google Sheets`,
+        count: createdTransactions.length,
         connection: {
           sheetUrl: connection.sheetUrl,
           lastImportDate: new Date(),
         },
       });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      console.error("Google Sheets import error:", error);
+      res.status(500).json({ error: error.message || "Failed to import from Google Sheets" });
     }
   });
 
