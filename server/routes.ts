@@ -35,7 +35,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/transactions", async (req, res) => {
     try {
-      const data = insertTransactionSchema.parse(req.body);
+      // Transform date string to Date object if needed
+      const body = {
+        ...req.body,
+        date: typeof req.body.date === 'string' || typeof req.body.date === 'number' 
+          ? new Date(req.body.date) 
+          : req.body.date
+      };
+      const data = insertTransactionSchema.parse(body);
       const transaction = await storage.createTransaction(data);
       res.status(201).json(transaction);
     } catch (error: any) {
@@ -48,7 +55,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.patch("/api/transactions/:id", async (req, res) => {
     try {
-      const updates = insertTransactionSchema.partial().parse(req.body);
+      // Transform date string to Date object if needed
+      const body = {
+        ...req.body,
+        ...(req.body.date && {
+          date: typeof req.body.date === 'string' || typeof req.body.date === 'number' 
+            ? new Date(req.body.date) 
+            : req.body.date
+        })
+      };
+      const updates = insertTransactionSchema.partial().parse(body);
       const transaction = await storage.updateTransaction(req.params.id, updates);
       if (!transaction) {
         return res.status(404).json({ error: "Transaction not found" });

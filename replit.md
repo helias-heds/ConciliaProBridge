@@ -10,6 +10,20 @@ The application provides a professional dashboard interface for financial data m
 
 ## Recent Changes (October 2025)
 
+### Transaction Sorting and Bug Fixes (October 14, 2025)
+- **Date Sorting Implemented**: Transactions now display in chronological order with most recent first
+  - Sorting logic: `filtered.sort((a, b) => b.date.getTime() - a.date.getTime())`
+  - Applied to all dashboard tabs: All, Reconciled, Pending Ledger, Pending Statement
+  - Trash view also sorted by deletion date (most recent first)
+- **Date Validation Bug Fixed**: Server now correctly accepts ISO date strings from JSON
+  - Added date transformation in POST /api/transactions route
+  - Converts string/number dates to Date objects before Zod validation
+  - Manual transaction creation via UI now works without validation errors
+  - Same fix applied to PATCH /api/transactions/:id route
+- **Calendar Date Selection**: Resolved issue where selected dates were being saved correctly
+  - Date picker now properly maintains month/day/year when creating manual transactions
+  - Transactions created via UI display with correct dates in MM/dd/yyyy format
+
 ### CSV Reconciliation Implementation (October 14, 2025)
 - **Automatic Transaction Matching**: System now reconciles CSV bank statements with Google Sheets ledger data
   - **Required matching criteria** (ALL must be met):

@@ -60,7 +60,6 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
       source: "manual",
     };
 
-    console.log("Adding new transaction:", transaction);
     onAdd?.(transaction);
     
     // Reset form

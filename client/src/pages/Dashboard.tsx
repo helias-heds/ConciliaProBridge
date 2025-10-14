@@ -63,6 +63,9 @@ export default function Dashboard() {
       );
     }
     
+    // Sort by date (most recent first)
+    filtered = filtered.sort((a, b) => b.date.getTime() - a.date.getTime());
+    
     return filtered;
   };
 
@@ -70,6 +73,11 @@ export default function Dashboard() {
   const reconciledTransactions = baseFiltered.filter(t => t.status === "reconciled");
   const pendingLedger = baseFiltered.filter(t => t.status === "pending-ledger");
   const pendingStatement = baseFiltered.filter(t => t.status === "pending-statement");
+  
+  // Sort trashed transactions by deletion date (most recent first)
+  const sortedTrashedTransactions = [...trashedTransactions].sort((a, b) => 
+    b.deletedAt.getTime() - a.deletedAt.getTime()
+  );
 
   // Mutation for creating transactions
   const createMutation = useMutation({
@@ -303,7 +311,7 @@ export default function Dashboard() {
             </div>
           ) : activeTab === "trash" ? (
             <TrashView 
-              trashedTransactions={trashedTransactions}
+              trashedTransactions={sortedTrashedTransactions}
               onRestore={(id) => {
                 // Remove from local trash - transaction will reappear on next query refresh
                 setTrashedTransactions(prev => prev.filter(t => t.id !== id));
