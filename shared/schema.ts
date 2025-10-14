@@ -19,6 +19,8 @@ export const transactions = pgTable("transactions", {
   status: varchar("status", { length: 50 }).notNull().default("pending-ledger"),
   confidence: integer("confidence"),
   source: varchar("source", { length: 100 }),
+  paymentMethod: text("payment_method"),
+  matchedTransactionId: varchar("matched_transaction_id"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 

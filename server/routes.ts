@@ -6,6 +6,7 @@ import { parseFile } from "./parsers";
 import { insertTransactionSchema, insertGoogleSheetsConnectionSchema } from "@shared/schema";
 import { z } from "zod";
 import { importFromGoogleSheets } from "./googleSheets";
+import { reconcileTransactions } from "./reconciliation";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -94,6 +95,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             source: parsed.source,
             car: null,
             confidence: null,
+            paymentMethod: parsed.paymentMethod || null,
+            depositor: parsed.depositor || null,
+            matchedTransactionId: null,
           });
           allTransactions.push(transaction);
         }
@@ -165,6 +169,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/reconcile", async (req, res) => {
+    try {
+      const allTransactions = await storage.getTransactions();
+      
+      // Get pending CSV transactions (from bank/card statements)
+      const csvTransactions = allTransactions.filter(
+        (tx) => tx.status === "pending-statement"
+      );
+      
+      // Get pending Google Sheets transactions (from ledger)
+      const sheetTransactions = allTransactions.filter(
+        (tx) => tx.status === "pending-ledger"
+      );
+
+      if (csvTransactions.length === 0) {
+        return res.json({
+          message: "No CSV transactions to reconcile",
+          matches: 0,
+          unmatchedCsv: 0,
+          unmatchedSheets: sheetTransactions.length,
+        });
+      }
+
+      if (sheetTransactions.length === 0) {
+        return res.json({
+          message: "No Google Sheets transactions to reconcile against",
+          matches: 0,
+          unmatchedCsv: csvTransactions.length,
+          unmatchedSheets: 0,
+        });
+      }
+
+      // Perform reconciliation
+      const result = reconcileTransactions(csvTransactions, sheetTransactions);
+
+      // Update matched transactions
+      for (const match of result.matches) {
+        // Update CSV transaction
+        await storage.updateTransaction(match.csvTransaction.id, {
+          status: "reconciled",
+          matchedTransactionId: match.sheetTransaction.id,
+          confidence: match.confidence,
+        });
+
+        // Update Sheet transaction
+        await storage.updateTransaction(match.sheetTransaction.id, {
+          status: "reconciled",
+          matchedTransactionId: match.csvTransaction.id,
+          confidence: match.confidence,
+        });
+      }
+
+      res.json({
+        message: `Reconciliation complete: ${result.matches.length} matches found`,
+        matches: result.matches.length,
+        unmatchedCsv: result.unmatchedCsv.length,
+        unmatchedSheets: result.unmatchedSheets.length,
+        details: result.matches.map((m) => ({
+          csvTransactionId: m.csvTransaction.id,
+          sheetTransactionId: m.sheetTransaction.id,
+          confidence: m.confidence,
+          reasons: m.reasons,
+        })),
+      });
+    } catch (error: any) {
+      console.error("Reconciliation error:", error);
+      res.status(500).json({ error: error.message || "Failed to reconcile transactions" });
+    }
+  });
+
   app.post("/api/google-sheets/import", async (req, res) => {
     try {
       const connection = await storage.getGoogleSheetsConnection();
@@ -190,6 +264,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           car: sheetTx.car || null,
           depositor: sheetTx.depositor || null,
           confidence: null,
+          paymentMethod: null,
+          matchedTransactionId: null,
         });
         createdTransactions.push(transaction);
       }
