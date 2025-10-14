@@ -20,8 +20,10 @@ The application provides a professional dashboard interface for financial data m
   - **CSV Parser enhancements**:
     - Detects "Zelle" keyword in description and stores as paymentMethod
     - Extracts client name from text after "from" keyword
-    - Example: "Zelle from John Smith" → paymentMethod="Zelle", name="John Smith"
-    - Note: "Zelle" is the payment method, the name AFTER "from" is the client name
+    - Automatically cleans name: removes "on" and everything after it, removes trailing numbers/special chars
+    - Date parsing: treats 2-digit years as 2000+ (e.g., 25 → 2025)
+    - Example: "Zelle from John Smith on 12345" → paymentMethod="Zelle", name="John Smith"
+    - Note: "Zelle" is the payment method, the name AFTER "from" is the client name (cleaned)
   - **Reconciliation Algorithm** (server/reconciliation.ts):
     - Compares pending-statement (CSV) with pending-ledger (Google Sheets) transactions
     - Calculates confidence score: date(25) + value(25) + Zelle(20) + name match(10-30) = 60-100%

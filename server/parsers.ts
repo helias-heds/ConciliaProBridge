@@ -79,9 +79,19 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
               if (dateField.includes("/")) {
                 const parts = dateField.split("/");
                 if (parts[0].length === 4) {
-                  date = new Date(parts[0], parseInt(parts[1]) - 1, parts[2]);
+                  // Format: YYYY/MM/DD
+                  date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
                 } else {
-                  date = new Date(parts[2], parseInt(parts[0]) - 1, parts[1]);
+                  // Format: MM/DD/YY or MM/DD/YYYY
+                  let year = parseInt(parts[2]);
+                  // If year is 2 digits (e.g., 25), assume 2000+
+                  if (year < 100) {
+                    year += 2000;
+                  }
+                  const month = parseInt(parts[0]) - 1;
+                  const day = parseInt(parts[1]);
+                  date = new Date(year, month, day);
+                  console.log(`CSV Date parsing: "${dateField}" → parts=[${parts.join(',')}], year=${year}, month=${month}, day=${day} → Date=${date.toISOString()}`);
                 }
               } else if (dateField.includes("-")) {
                 date = new Date(dateField);
@@ -105,7 +115,16 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
                 // Extract client name from text after "from"
                 const fromMatch = nameField.match(/from\s+(.+)/i);
                 if (fromMatch) {
-                  clientName = fromMatch[1].trim(); // This is the client name
+                  let rawName = fromMatch[1].trim();
+                  
+                  // Remove "on" and everything after it
+                  rawName = rawName.replace(/\s+on\s+.*/i, '');
+                  
+                  // Remove numbers and special characters at the end
+                  rawName = rawName.replace(/[\d\-\(\)]+.*$/, '');
+                  
+                  // Clean up extra whitespace
+                  clientName = rawName.trim();
                   depositor = clientName; // Store same value in depositor for matching
                 }
               }
