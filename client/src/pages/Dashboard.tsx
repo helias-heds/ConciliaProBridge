@@ -89,6 +89,7 @@ export default function Dashboard() {
         status: "pending-ledger",
         source: "Manual Entry",
         car: newTransaction.car || null,
+        depositor: newTransaction.depositor || null,
         confidence: null,
       });
       return res.json();

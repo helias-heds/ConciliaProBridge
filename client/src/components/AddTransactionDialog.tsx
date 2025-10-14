@@ -33,6 +33,7 @@ export interface NewTransaction {
   date: Date;
   name: string;
   car: string;
+  depositor?: string;
   value: number;
   type: "income" | "expense";
   source: "manual";
@@ -42,6 +43,7 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
   const [date, setDate] = useState<Date>(new Date());
   const [name, setName] = useState("");
   const [car, setCar] = useState("");
+  const [depositor, setDepositor] = useState("");
   const [value, setValue] = useState("");
   const [type, setType] = useState<"income" | "expense">("expense");
 
@@ -55,6 +57,7 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
       date,
       name,
       car,
+      depositor: depositor || undefined,
       value: parseFloat(value),
       type,
       source: "manual",
@@ -65,6 +68,7 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
     // Reset form
     setName("");
     setCar("");
+    setDepositor("");
     setValue("");
     setType("expense");
     setDate(new Date());
@@ -139,6 +143,17 @@ export function AddTransactionDialog({ open, onOpenChange, onAdd }: AddTransacti
               value={car}
               onChange={(e) => setCar(e.target.value)}
               data-testid="input-car"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="depositor">Depositor (Optional)</Label>
+            <Input
+              id="depositor"
+              placeholder="Ex: John Smith"
+              value={depositor}
+              onChange={(e) => setDepositor(e.target.value)}
+              data-testid="input-depositor"
             />
           </div>
 

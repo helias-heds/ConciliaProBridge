@@ -18,6 +18,7 @@ export interface Transaction {
   date: Date;
   name: string;
   car: string;
+  depositor?: string;
   value: number;
   status: "reconciled" | "pending-ledger" | "pending-statement";
   confidence?: number;
@@ -61,7 +62,7 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
               <Checkbox data-testid="checkbox-select-all" />
             </TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Name / Car</TableHead>
+            <TableHead>Name / Depositor</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-center">Confidence</TableHead>
@@ -80,6 +81,11 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
               <TableCell>
                 <div className="space-y-0.5">
                   <div className="font-medium">{transaction.name}</div>
+                  {transaction.depositor && (
+                    <div className="text-sm text-muted-foreground">
+                      Depositor: {transaction.depositor}
+                    </div>
+                  )}
                   {transaction.car && (
                     <div className="text-sm text-muted-foreground">{transaction.car}</div>
                   )}

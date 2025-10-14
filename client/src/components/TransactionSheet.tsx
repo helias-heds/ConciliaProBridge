@@ -25,6 +25,7 @@ export interface Transaction {
   date: Date;
   name: string;
   car: string;
+  depositor?: string;
   value: number;
   status: "reconciled" | "pending-ledger" | "pending-statement";
   confidence?: number;
@@ -47,6 +48,7 @@ export function TransactionSheet({
 }: TransactionSheetProps) {
   const [name, setName] = useState(transaction?.name || "");
   const [car, setCar] = useState(transaction?.car || "");
+  const [depositor, setDepositor] = useState(transaction?.depositor || "");
   const [date, setDate] = useState(
     transaction?.date ? format(transaction.date, "yyyy-MM-dd") : ""
   );
@@ -59,6 +61,7 @@ export function TransactionSheet({
   if (transaction && transaction.id !== (transaction as any)._lastId) {
     setName(transaction.name);
     setCar(transaction.car);
+    setDepositor(transaction.depositor || "");
     setDate(format(transaction.date, "yyyy-MM-dd"));
     setValue(transaction.value.toString());
     setStatus(transaction.status);
@@ -71,6 +74,7 @@ export function TransactionSheet({
     onUpdate(transaction.id, {
       name,
       car,
+      depositor: depositor || undefined,
       date: new Date(date),
       value: parseFloat(value),
       status,
@@ -142,6 +146,18 @@ export function TransactionSheet({
               onChange={(e) => setCar(e.target.value)}
               placeholder="Ex: Honda Civic 2020"
               data-testid="input-edit-car"
+            />
+          </div>
+
+          {/* Depositor */}
+          <div className="space-y-2">
+            <Label htmlFor="depositor">Depositor (Optional)</Label>
+            <Input
+              id="depositor"
+              value={depositor}
+              onChange={(e) => setDepositor(e.target.value)}
+              placeholder="Ex: John Smith"
+              data-testid="input-edit-depositor"
             />
           </div>
 
