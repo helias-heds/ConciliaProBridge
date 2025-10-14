@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Transaction, type InsertTransaction } from "@shared/schema";
+import { type User, type InsertUser, type Transaction, type InsertTransaction, type GoogleSheetsConnection, type InsertGoogleSheetsConnection } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -12,15 +12,21 @@ export interface IStorage {
   createTransactions(transactions: InsertTransaction[]): Promise<Transaction[]>;
   updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
   deleteTransaction(id: string): Promise<boolean>;
+  
+  getGoogleSheetsConnection(): Promise<GoogleSheetsConnection | undefined>;
+  saveGoogleSheetsConnection(connection: InsertGoogleSheetsConnection): Promise<GoogleSheetsConnection>;
+  updateGoogleSheetsConnection(id: string, updates: Partial<GoogleSheetsConnection>): Promise<GoogleSheetsConnection | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private transactions: Map<string, Transaction>;
+  private googleSheetsConnection: GoogleSheetsConnection | undefined;
 
   constructor() {
     this.users = new Map();
     this.transactions = new Map();
+    this.googleSheetsConnection = undefined;
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -88,6 +94,41 @@ export class MemStorage implements IStorage {
 
   async deleteTransaction(id: string): Promise<boolean> {
     return this.transactions.delete(id);
+  }
+
+  async getGoogleSheetsConnection(): Promise<GoogleSheetsConnection | undefined> {
+    return this.googleSheetsConnection;
+  }
+
+  async saveGoogleSheetsConnection(insertConnection: InsertGoogleSheetsConnection): Promise<GoogleSheetsConnection> {
+    const id = randomUUID();
+    const connection: GoogleSheetsConnection = {
+      id,
+      apiKey: insertConnection.apiKey,
+      sheetUrl: insertConnection.sheetUrl,
+      sheetId: insertConnection.sheetId ?? null,
+      lastImportDate: insertConnection.lastImportDate ?? null,
+      lastImportCount: insertConnection.lastImportCount ?? null,
+      status: insertConnection.status || "connected",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.googleSheetsConnection = connection;
+    return connection;
+  }
+
+  async updateGoogleSheetsConnection(id: string, updates: Partial<GoogleSheetsConnection>): Promise<GoogleSheetsConnection | undefined> {
+    if (!this.googleSheetsConnection || this.googleSheetsConnection.id !== id) {
+      return undefined;
+    }
+
+    this.googleSheetsConnection = {
+      ...this.googleSheetsConnection,
+      ...updates,
+      updatedAt: new Date(),
+    };
+
+    return this.googleSheetsConnection;
   }
 }
 
