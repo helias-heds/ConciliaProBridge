@@ -2,12 +2,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FileUploadZone } from "@/components/FileUploadZone";
 import { GoogleSheetsConnect } from "@/components/GoogleSheetsConnect";
 import { Separator } from "@/components/ui/separator";
-import { FileText, CheckCircle, XCircle } from "lucide-react";
+import { FileText, CheckCircle, XCircle, ArrowLeftRight } from "lucide-react";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { queryClient } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 
 interface UploadedFile {
   id: string;
@@ -74,6 +75,39 @@ export default function Upload() {
     },
   });
 
+  const reconcileMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/reconcile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Reconciliation failed");
+      }
+
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Reconciliation Complete",
+        description: `${data.matches} matches found. ${data.unmatchedCsv} CSV and ${data.unmatchedSheets} Google Sheets transactions remain unmatched.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Reconciliation Failed",
+        description: error.message || "Failed to reconcile transactions",
+      });
+    },
+  });
+
   const handleFilesSelected = (files: FileList) => {
     const newFiles = Array.from(files).map((file, index) => ({
       id: `${Date.now()}-${index}`,
@@ -136,6 +170,39 @@ export default function Upload() {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ArrowLeftRight className="h-5 w-5" />
+            Reconciliation
+          </CardTitle>
+          <CardDescription>
+            Match CSV transactions with Google Sheets ledger data
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              The system will automatically match transactions by comparing:
+            </p>
+            <ul className="text-sm space-y-2 text-muted-foreground list-disc list-inside">
+              <li>Date (±2 days tolerance)</li>
+              <li>Payment method (e.g., Zelle)</li>
+              <li>Customer/Depositor name (text after "from")</li>
+              <li>Transaction amount</li>
+            </ul>
+            <Button
+              onClick={() => reconcileMutation.mutate()}
+              disabled={reconcileMutation.isPending}
+              className="w-full sm:w-auto"
+              data-testid="button-reconcile"
+            >
+              {reconcileMutation.isPending ? "Reconciling..." : "Start Reconciliation"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {uploadedFiles.length > 0 && (
         <>

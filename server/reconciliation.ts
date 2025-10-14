@@ -53,50 +53,62 @@ function findBestMatch(
     const reasons: string[] = [];
     let confidence = 0;
 
-    // Check date match (required)
+    // REQUIRED: Check date match
     if (!datesMatch(new Date(csvTx.date), new Date(sheetTx.date))) {
       continue; // Skip if dates don't match
     }
     reasons.push("Date matches");
     confidence += 25;
 
-    // Check value match (required)
+    // REQUIRED: Check value match
     if (!valuesMatch(csvTx.value, sheetTx.value)) {
       continue; // Skip if values don't match
     }
     reasons.push("Value matches");
     confidence += 25;
 
-    // Check payment method (Zelle) - required if present in CSV
-    if (csvTx.paymentMethod?.toLowerCase() === "zelle") {
-      reasons.push("Payment method: Zelle");
-      confidence += 20;
+    // REQUIRED: Check payment method is Zelle
+    // Google Sheets doesn't import payment method, so we only validate CSV has Zelle
+    if (csvTx.paymentMethod?.toLowerCase() !== "zelle") {
+      continue; // Skip if not Zelle payment
     }
+    reasons.push("Payment method: Zelle");
+    confidence += 20;
 
-    // Check if CSV depositor matches sheet client name or depositor
+    // REQUIRED: Check if CSV depositor matches sheet client name or depositor
     const csvDepositor = csvTx.depositor?.trim().toLowerCase();
     const sheetName = sheetTx.name?.trim().toLowerCase();
     const sheetDepositor = sheetTx.depositor?.trim().toLowerCase();
+
+    let nameMatched = false;
 
     if (csvDepositor) {
       if (csvDepositor === sheetName) {
         reasons.push("Depositor matches client name");
         confidence += 30;
+        nameMatched = true;
       } else if (csvDepositor === sheetDepositor) {
         reasons.push("Depositor matches depositor");
         confidence += 30;
+        nameMatched = true;
       }
     }
 
-    // Check if CSV name matches sheet client name
+    // Also check if CSV name matches sheet client name
     const csvName = csvTx.name?.trim().toLowerCase();
-    if (csvName && csvName === sheetName) {
+    if (!nameMatched && csvName && csvName === sheetName) {
       reasons.push("Name matches");
       confidence += 10;
+      nameMatched = true;
     }
 
-    // Only consider this a match if confidence is at least 50 (date + value required)
-    if (confidence >= 50 && confidence > highestConfidence) {
+    // REQUIRED: Must have name match to proceed
+    if (!nameMatched) {
+      continue; // Skip if no name/depositor match
+    }
+
+    // Track best match (highest confidence)
+    if (confidence > highestConfidence) {
       highestConfidence = confidence;
       bestMatch = {
         csvTransaction: csvTx,
