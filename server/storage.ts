@@ -66,6 +66,8 @@ export class MemStorage implements IStorage {
       depositor: insertTransaction.depositor ?? null,
       confidence: insertTransaction.confidence ?? null,
       source: insertTransaction.source ?? null,
+      paymentMethod: insertTransaction.paymentMethod ?? null,
+      matchedTransactionId: insertTransaction.matchedTransactionId ?? null,
       createdAt: new Date(),
     };
     this.transactions.set(id, transaction);
