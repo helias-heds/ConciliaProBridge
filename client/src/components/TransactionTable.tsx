@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { enUS } from "date-fns/locale";
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, Link2 } from "lucide-react";
 
 export interface Transaction {
   id: string;
@@ -28,9 +28,10 @@ interface TransactionTableProps {
   transactions: Transaction[];
   onSelectionChange?: (selectedIds: string[]) => void;
   onTransactionClick?: (transaction: Transaction) => void;
+  onManualReconcile?: (transaction: Transaction) => void;
 }
 
-export function TransactionTable({ transactions, onSelectionChange, onTransactionClick }: TransactionTableProps) {
+export function TransactionTable({ transactions, onSelectionChange, onTransactionClick, onManualReconcile }: TransactionTableProps) {
   const getStatusBadge = (status: Transaction["status"]) => {
     const variants = {
       reconciled: { label: "Reconciled", variant: "default" as const, color: "bg-chart-2 text-white border-chart-2" },
@@ -103,14 +104,27 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
                 )}
               </TableCell>
               <TableCell>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => onTransactionClick?.(transaction)}
-                  data-testid={`button-actions-${transaction.id}`}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  {transaction.status !== "reconciled" && onManualReconcile && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onManualReconcile(transaction)}
+                      data-testid={`button-manual-reconcile-${transaction.id}`}
+                      title="Manual Reconciliation"
+                    >
+                      <Link2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => onTransactionClick?.(transaction)}
+                    data-testid={`button-actions-${transaction.id}`}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

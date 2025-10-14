@@ -90,6 +90,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/transactions/manual-reconcile", async (req, res) => {
+    try {
+      const { transactionId, matchId } = req.body;
+      
+      if (!transactionId || !matchId) {
+        return res.status(400).json({ error: "Both transactionId and matchId are required" });
+      }
+
+      if (transactionId === matchId) {
+        return res.status(400).json({ error: "Cannot reconcile a transaction with itself" });
+      }
+
+      const transaction1 = await storage.getTransaction(transactionId);
+      const transaction2 = await storage.getTransaction(matchId);
+
+      if (!transaction1 || !transaction2) {
+        return res.status(404).json({ error: "One or both transactions not found" });
+      }
+
+      if (transaction1.status === "reconciled" || transaction2.status === "reconciled") {
+        return res.status(400).json({ error: "One or both transactions are already reconciled" });
+      }
+
+      // Validate that transactions have complementary statuses (one pending-ledger, one pending-statement)
+      const hasOppositeStatus = 
+        (transaction1.status === "pending-ledger" && transaction2.status === "pending-statement") ||
+        (transaction1.status === "pending-statement" && transaction2.status === "pending-ledger");
+
+      if (!hasOppositeStatus) {
+        return res.status(400).json({ 
+          error: "Transactions must have complementary statuses (one pending-ledger and one pending-statement)" 
+        });
+      }
+
+      // Update both transactions to reconciled status with manual flag
+      await storage.updateTransaction(transactionId, {
+        status: "reconciled",
+        matchedTransactionId: matchId,
+        confidence: 100, // Manual reconciliation has 100% confidence
+      });
+
+      await storage.updateTransaction(matchId, {
+        status: "reconciled",
+        matchedTransactionId: transactionId,
+        confidence: 100,
+      });
+
+      res.json({ 
+        message: "Transactions reconciled manually",
+        transaction1: await storage.getTransaction(transactionId),
+        transaction2: await storage.getTransaction(matchId),
+      });
+    } catch (error: any) {
+      console.error("Manual reconciliation error:", error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/upload", upload.array("files", 10), async (req, res) => {
     try {
       if (!req.files || (req.files as Express.Multer.File[]).length === 0) {

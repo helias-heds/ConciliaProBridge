@@ -5,6 +5,7 @@ import { TransactionSheet } from "@/components/TransactionSheet";
 import { TrashView } from "@/components/TrashView";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { ManualMatchDialog } from "@/components/ManualMatchDialog";
+import { ManualReconcileDialog } from "@/components/ManualReconcileDialog";
 import { AddTransactionDialog, NewTransaction } from "@/components/AddTransactionDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle2, Clock, AlertCircle, Plus, Trash2, Filter } from "lucide-react";
@@ -21,7 +22,9 @@ export default function Dashboard() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [reconcileDialogOpen, setReconcileDialogOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [transactionToReconcile, setTransactionToReconcile] = useState<Transaction | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [trashedTransactions, setTrashedTransactions] = useState<Array<Transaction & { deletedAt: Date }>>([]);
   
@@ -162,6 +165,31 @@ export default function Dashboard() {
     },
   });
 
+  // Mutation for manual reconciliation
+  const manualReconcileMutation = useMutation({
+    mutationFn: async ({ transactionId, matchId }: { transactionId: string; matchId: string }) => {
+      const res = await apiRequest("POST", "/api/transactions/manual-reconcile", {
+        transactionId,
+        matchId,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      toast({
+        title: "Manual Reconciliation Complete",
+        description: "Transactions have been manually reconciled",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to reconcile transactions",
+      });
+    },
+  });
+
   const handleAddTransaction = (newTransaction: NewTransaction) => {
     createMutation.mutate(newTransaction);
   };
@@ -183,6 +211,15 @@ export default function Dashboard() {
     }
   };
 
+  const handleManualReconcile = (transaction: Transaction) => {
+    setTransactionToReconcile(transaction);
+    setReconcileDialogOpen(true);
+  };
+
+  const handleConfirmReconcile = (transactionId: string, matchId: string) => {
+    manualReconcileMutation.mutate({ transactionId, matchId });
+  };
+
   const handleApplyFilters = () => {
     setAppliedDateRange(selectedDateRange);
   };
@@ -198,6 +235,16 @@ export default function Dashboard() {
       default:
         return baseFiltered;
     }
+  };
+
+  const getCandidateTransactions = (transaction: Transaction | null): Transaction[] => {
+    if (!transaction) return [];
+    
+    // If transaction is pending-ledger, show pending-statement candidates
+    // If transaction is pending-statement, show pending-ledger candidates
+    const oppositeStatus = transaction.status === "pending-ledger" ? "pending-statement" : "pending-ledger";
+    
+    return transactions.filter(t => t.status === oppositeStatus);
   };
 
   return (
@@ -331,6 +378,7 @@ export default function Dashboard() {
             <TransactionTable 
               transactions={getFilteredTransactions()} 
               onTransactionClick={handleTransactionClick}
+              onManualReconcile={handleManualReconcile}
             />
           )}
         </TabsContent>
@@ -366,6 +414,14 @@ export default function Dashboard() {
         onOpenChange={setSheetOpen}
         onUpdate={handleUpdateTransaction}
         onDelete={handleDeleteTransaction}
+      />
+
+      <ManualReconcileDialog
+        open={reconcileDialogOpen}
+        onOpenChange={setReconcileDialogOpen}
+        transaction={transactionToReconcile}
+        candidateTransactions={getCandidateTransactions(transactionToReconcile)}
+        onReconcile={handleConfirmReconcile}
       />
     </div>
   );
