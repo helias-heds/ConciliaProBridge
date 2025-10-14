@@ -4,13 +4,47 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiGooglesheets } from "react-icons/si";
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export function GoogleSheetsConnect() {
   const [apiKey, setApiKey] = useState("");
   const [sheetUrl, setSheetUrl] = useState("");
+  const { toast } = useToast();
+
+  const connectMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/google-sheets/connect", { apiKey, sheetUrl });
+      return res.json();
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Connection Successful",
+        description: data.message || "Google Sheets connected successfully",
+      });
+      setApiKey("");
+      setSheetUrl("");
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Connection Failed",
+        description: error.message || "Failed to connect to Google Sheets",
+      });
+    },
+  });
 
   const handleConnect = () => {
-    console.log("Connecting to Google Sheets with:", { apiKey, sheetUrl });
+    if (!apiKey || !sheetUrl) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please provide both API key and spreadsheet URL",
+      });
+      return;
+    }
+    connectMutation.mutate();
   };
 
   return (
@@ -33,6 +67,7 @@ export function GoogleSheetsConnect() {
             placeholder="Paste your API key here"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
+            disabled={connectMutation.isPending}
             data-testid="input-api-key"
           />
           <p className="text-xs text-muted-foreground">
@@ -47,11 +82,17 @@ export function GoogleSheetsConnect() {
             placeholder="https://docs.google.com/spreadsheets/d/..."
             value={sheetUrl}
             onChange={(e) => setSheetUrl(e.target.value)}
+            disabled={connectMutation.isPending}
             data-testid="input-sheet-url"
           />
         </div>
-        <Button onClick={handleConnect} className="w-full" data-testid="button-connect-sheets">
-          Connect Spreadsheet
+        <Button 
+          onClick={handleConnect} 
+          className="w-full" 
+          disabled={connectMutation.isPending}
+          data-testid="button-connect-sheets"
+        >
+          {connectMutation.isPending ? "Connecting..." : "Connect Spreadsheet"}
         </Button>
       </CardContent>
     </Card>
