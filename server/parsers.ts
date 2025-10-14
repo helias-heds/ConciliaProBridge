@@ -93,28 +93,26 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
                 ? parseFloat(valueField.replace(/[,$]/g, ""))
                 : parseFloat(valueField);
 
-              // Extract payment method (e.g., "Zelle") from description
+              // Extract payment method and client name from description
+              // Format: "Zelle from John Smith" -> paymentMethod="Zelle", name="John Smith"
               let paymentMethod: string | undefined;
+              let clientName = nameField || "Transaction";
+              let depositor: string | undefined;
+              
               if (nameField && nameField.toLowerCase().includes("zelle")) {
                 paymentMethod = "Zelle";
-              }
-
-              // Extract depositor name from "from" keyword
-              let depositor: string | undefined;
-              let cleanName = nameField || "Transaction";
-              
-              if (nameField) {
+                
+                // Extract client name from text after "from"
                 const fromMatch = nameField.match(/from\s+(.+)/i);
                 if (fromMatch) {
-                  depositor = fromMatch[1].trim();
-                  // Keep only the part before "from" as the name
-                  cleanName = nameField.substring(0, nameField.toLowerCase().indexOf("from")).trim() || depositor;
+                  clientName = fromMatch[1].trim(); // This is the client name
+                  depositor = clientName; // Store same value in depositor for matching
                 }
               }
 
               transactions.push({
                 date,
-                name: cleanName,
+                name: clientName,
                 value: Math.abs(value),
                 source: filename,
                 paymentMethod,

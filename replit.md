@@ -19,8 +19,9 @@ The application provides a professional dashboard interface for financial data m
     4. Customer/depositor name MUST match (CSV depositor vs. Sheet client/depositor)
   - **CSV Parser enhancements**:
     - Detects "Zelle" keyword in description and stores as paymentMethod
-    - Extracts depositor name from text after "from" keyword
-    - Example: "Zelle from John Smith" → paymentMethod="Zelle", depositor="John Smith"
+    - Extracts client name from text after "from" keyword
+    - Example: "Zelle from John Smith" → paymentMethod="Zelle", name="John Smith"
+    - Note: "Zelle" is the payment method, the name AFTER "from" is the client name
   - **Reconciliation Algorithm** (server/reconciliation.ts):
     - Compares pending-statement (CSV) with pending-ledger (Google Sheets) transactions
     - Calculates confidence score: date(25) + value(25) + Zelle(20) + name match(10-30) = 60-100%
