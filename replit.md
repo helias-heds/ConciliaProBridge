@@ -10,6 +10,41 @@ The application provides a professional dashboard interface for financial data m
 
 ## Recent Changes (October 2025)
 
+### Dashboard Real Data Integration (October 14, 2025)
+- **Removed Mock Data**: Dashboard now fetches real transactions from API using React Query
+  - GET /api/transactions endpoint returns all transactions from in-memory storage
+  - Automatic data transformation: date strings → Date objects, value strings → numbers
+  - Cache invalidation after create/update/delete operations ensures real-time updates
+- **Loading and Empty States**: 
+  - Skeleton UI (5 animated pulse rows) displays during initial data fetch
+  - Empty state message shown when no transactions exist: "No transactions found - Import data or add transactions to get started"
+  - Proper loading indicators on mutation buttons (isPending state)
+- **Google Sheets Integration Working**: 
+  - Imported transactions automatically appear in dashboard without refresh
+  - Test confirmed: 30 transactions imported from Google public example sheet
+  - All status cards and tabs update dynamically with real counts
+  - Transactions appear in correct tabs based on status (e.g., "pending-ledger" tab)
+- **CRUD Operations**: Created mutations for creating, updating, and deleting transactions via API
+  - Manual transaction entry via "New Transaction" button
+  - Transaction updates trigger cache invalidation and UI refresh
+  - Delete moves transactions to trash locally and removes from API
+
+### Google Sheets Real Import Implementation (October 14, 2025)
+- **OAuth Authentication**: Replit connector manages Google OAuth automatically
+  - No API key required from users
+  - Secure token management and automatic refresh handled by Replit
+  - Frontend displays "OAuth authentication managed by Replit" message
+- **Real Data Import**: System reads actual spreadsheet data from Google Sheets API
+  - Reads columns A-D: Date, Name, Amount, Car
+  - Parses various date formats (MM/DD/YYYY, YYYY-MM-DD)
+  - Handles currency formatting (removes $ and commas)
+  - Creates transactions with status="pending-ledger" and source="Google Sheets"
+- **Connection Persistence**: Tracks last import date, record count, and spreadsheet URL
+- **End-to-End Testing**: Confirmed working with Google's public example spreadsheet
+  - Successfully imported 30 transactions
+  - All transactions appeared in dashboard immediately
+  - Status cards and tabs updated correctly
+
 ### English Localization (October 13, 2025)
 - **Full System Translation**: Completed translation from Portuguese (pt-BR) to English (en-US)
   - All UI components, pages, and labels converted to English
