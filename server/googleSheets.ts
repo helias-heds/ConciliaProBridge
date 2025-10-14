@@ -51,6 +51,7 @@ export interface SheetTransaction {
   date: Date;
   name: string;
   car?: string;
+  depositor?: string;
   value: number;
 }
 
@@ -59,7 +60,7 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
   
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
-    range: 'A:D',
+    range: 'A:F',
   });
 
   const rows = response.data.values;
@@ -69,33 +70,49 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
 
   const transactions: SheetTransaction[] = [];
   
+  // Skip header row, start from row 1
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
-    if (!row[0] || !row[1] || !row[2]) continue;
+    // Column A (date) and B (value) are required
+    if (!row[0] || !row[1]) continue;
 
+    // Column A: Date
     const dateStr = row[0];
     let date: Date;
     
     if (dateStr.includes('/')) {
       const parts = dateStr.split('/');
       if (parts[0].length === 4) {
+        // Format: YYYY/MM/DD
         date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
       } else {
+        // Format: MM/DD/YYYY
         date = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
       }
     } else {
       date = new Date(dateStr);
     }
 
-    const name = row[1].trim();
-    const valueStr = typeof row[2] === 'string' ? row[2].replace(/[,$]/g, '') : row[2];
+    // Column B: Value (Valor)
+    const valueStr = typeof row[1] === 'string' ? row[1].replace(/[,$]/g, '') : row[1];
     const value = parseFloat(valueStr);
+    
+    // Column D: Car (Carro) - index 3
     const car = row[3] ? row[3].trim() : undefined;
+    
+    // Column E: Client Name (Nome do cliente) - index 4
+    const name = row[4] ? row[4].trim() : 'Unknown';
+    
+    // Column F: Depositor Name (Nome do Depositor) - index 5
+    const depositor = row[5] ? row[5].trim() : undefined;
+
+    if (isNaN(value)) continue; // Skip if value is invalid
 
     transactions.push({
       date,
       name,
       car,
+      depositor,
       value: Math.abs(value),
     });
   }

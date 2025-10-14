@@ -188,6 +188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: "pending-ledger",
           source: "Google Sheets",
           car: sheetTx.car || null,
+          depositor: sheetTx.depositor || null,
           confidence: null,
         });
         createdTransactions.push(transaction);

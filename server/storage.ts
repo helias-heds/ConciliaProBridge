@@ -63,6 +63,7 @@ export class MemStorage implements IStorage {
       value: insertTransaction.value,
       status: insertTransaction.status || "pending-ledger",
       car: insertTransaction.car ?? null,
+      depositor: insertTransaction.depositor ?? null,
       confidence: insertTransaction.confidence ?? null,
       source: insertTransaction.source ?? null,
       createdAt: new Date(),

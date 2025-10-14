@@ -14,6 +14,7 @@ export const transactions = pgTable("transactions", {
   date: timestamp("date").notNull(),
   name: text("name").notNull(),
   car: text("car"),
+  depositor: text("depositor"),
   value: decimal("value", { precision: 12, scale: 2 }).notNull(),
   status: varchar("status", { length: 50 }).notNull().default("pending-ledger"),
   confidence: integer("confidence"),

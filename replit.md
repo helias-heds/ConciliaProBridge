@@ -35,10 +35,16 @@ The application provides a professional dashboard interface for financial data m
   - Secure token management and automatic refresh handled by Replit
   - Frontend displays "OAuth authentication managed by Replit" message
 - **Real Data Import**: System reads actual spreadsheet data from Google Sheets API
-  - Reads columns A-D: Date, Name, Amount, Car
-  - Parses various date formats (MM/DD/YYYY, YYYY-MM-DD)
+  - **Column Mapping** (Updated October 14, 2025):
+    - Column A: Date (MM/DD/YYYY or YYYY-MM-DD format)
+    - Column B: Value/Amount (numeric, $ and commas automatically removed)
+    - Column D: Car (vehicle model/description) - optional
+    - Column E: Client Name (customer/payment identifier) - required
+    - Column F: Depositor Name (who made the deposit) - optional
+  - Parses various date formats automatically
   - Handles currency formatting (removes $ and commas)
   - Creates transactions with status="pending-ledger" and source="Google Sheets"
+  - Skips rows with missing required fields (date, value, or client name)
 - **Connection Persistence**: Tracks last import date, record count, and spreadsheet URL
 - **End-to-End Testing**: Confirmed working with Google's public example spreadsheet
   - Successfully imported 30 transactions
