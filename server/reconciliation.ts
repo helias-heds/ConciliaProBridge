@@ -1,4 +1,5 @@
 import type { Transaction } from "@shared/schema";
+import { compareTwoStrings } from "string-similarity";
 
 interface ReconciliationMatch {
   csvTransaction: Transaction;
@@ -32,11 +33,21 @@ function valuesMatch(value1: string | number, value2: string | number): boolean 
 }
 
 /**
- * Check if names match (case insensitive, trimmed)
+ * Calculate name similarity score (0-100%)
+ * Returns 100 for exact match, 0-99 for partial similarity
  */
-function namesMatch(name1: string | null, name2: string | null): boolean {
-  if (!name1 || !name2) return false;
-  return name1.trim().toLowerCase() === name2.trim().toLowerCase();
+function getNameSimilarity(name1: string | null, name2: string | null): number {
+  if (!name1 || !name2) return 0;
+  
+  const str1 = name1.trim().toLowerCase();
+  const str2 = name2.trim().toLowerCase();
+  
+  // Exact match = 100%
+  if (str1 === str2) return 100;
+  
+  // Use string-similarity library (returns 0-1, we convert to 0-100)
+  const similarity = compareTwoStrings(str1, str2);
+  return Math.round(similarity * 100);
 }
 
 /**
@@ -53,58 +64,68 @@ function findBestMatch(
     const reasons: string[] = [];
     let confidence = 0;
 
-    // REQUIRED: Check date match
+    // REQUIRED: Check date match (±2 days)
     if (!datesMatch(new Date(csvTx.date), new Date(sheetTx.date))) {
       continue; // Skip if dates don't match
     }
-    reasons.push("Date matches");
-    confidence += 25;
+    reasons.push("Date matches (±2 days)");
+    confidence += 30;
 
-    // REQUIRED: Check value match
+    // REQUIRED: Check value match (exact)
     if (!valuesMatch(csvTx.value, sheetTx.value)) {
       continue; // Skip if values don't match
     }
-    reasons.push("Value matches");
-    confidence += 25;
+    reasons.push("Value matches exactly");
+    confidence += 30;
 
-    // REQUIRED: Check payment method is Zelle
-    // Google Sheets doesn't import payment method, so we only validate CSV has Zelle
-    if (csvTx.paymentMethod?.toLowerCase() !== "zelle") {
-      continue; // Skip if not Zelle payment
-    }
-    reasons.push("Payment method: Zelle");
-    confidence += 20;
+    // Check if this is a unified payment (credit card) - no depositor/name
+    const isUnifiedPayment = csvTx.paymentMethod?.toLowerCase() === "credit card";
+    
+    if (isUnifiedPayment) {
+      // Unified payments (credit card) only need date + value match
+      confidence += 40; // Full points since we can't check name
+      reasons.push("Unified payment (credit card) - date & value match");
+    } else {
+      // Calculate name similarity for Zelle/other payments
+      let nameSimilarity = 0;
+      let nameSource = "";
 
-    // REQUIRED: Check if CSV depositor matches sheet client name or depositor
-    const csvDepositor = csvTx.depositor?.trim().toLowerCase();
-    const sheetName = sheetTx.name?.trim().toLowerCase();
-    const sheetDepositor = sheetTx.depositor?.trim().toLowerCase();
-
-    let nameMatched = false;
-
-    if (csvDepositor) {
-      if (csvDepositor === sheetName) {
-        reasons.push("Depositor matches client name");
-        confidence += 30;
-        nameMatched = true;
-      } else if (csvDepositor === sheetDepositor) {
-        reasons.push("Depositor matches depositor");
-        confidence += 30;
-        nameMatched = true;
+      // Check depositor vs client name
+      if (csvTx.depositor && sheetTx.name) {
+        const depositorVsName = getNameSimilarity(csvTx.depositor, sheetTx.name);
+        if (depositorVsName > nameSimilarity) {
+          nameSimilarity = depositorVsName;
+          nameSource = "depositor vs client name";
+        }
       }
-    }
 
-    // Also check if CSV name matches sheet client name
-    const csvName = csvTx.name?.trim().toLowerCase();
-    if (!nameMatched && csvName && csvName === sheetName) {
-      reasons.push("Name matches");
-      confidence += 10;
-      nameMatched = true;
-    }
+      // Check depositor vs depositor
+      if (csvTx.depositor && sheetTx.depositor) {
+        const depositorVsDepositor = getNameSimilarity(csvTx.depositor, sheetTx.depositor);
+        if (depositorVsDepositor > nameSimilarity) {
+          nameSimilarity = depositorVsDepositor;
+          nameSource = "depositor vs depositor";
+        }
+      }
 
-    // REQUIRED: Must have name match to proceed
-    if (!nameMatched) {
-      continue; // Skip if no name/depositor match
+      // Check name vs client name
+      if (csvTx.name && sheetTx.name) {
+        const nameVsName = getNameSimilarity(csvTx.name, sheetTx.name);
+        if (nameVsName > nameSimilarity) {
+          nameSimilarity = nameVsName;
+          nameSource = "name vs client name";
+        }
+      }
+
+      // REQUIRED: Must have at least 50% name similarity for non-unified payments
+      if (nameSimilarity < 50) {
+        continue; // Skip if name similarity is less than 50%
+      }
+
+      // Add name similarity to confidence (0-40 points based on similarity)
+      const namePoints = Math.round((nameSimilarity / 100) * 40);
+      confidence += namePoints;
+      reasons.push(`Name similarity: ${nameSimilarity}% (${nameSource})`);
     }
 
     // Track best match (highest confidence)
