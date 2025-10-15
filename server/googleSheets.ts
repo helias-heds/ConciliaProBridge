@@ -106,19 +106,28 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
       continue;
     }
 
-    // Column A: Date
+    // Column A: Date - Parse as UTC to avoid timezone issues
     const dateStr = row[0];
     let date: Date;
     
     if (dateStr.includes('/')) {
       const parts = dateStr.split('/');
+      let year: number, month: number, day: number;
+      
       if (parts[0].length === 4) {
         // Format: YYYY/MM/DD
-        date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        year = parseInt(parts[0]);
+        month = parseInt(parts[1]) - 1; // JavaScript months are 0-indexed
+        day = parseInt(parts[2]);
       } else {
         // Format: MM/DD/YYYY
-        date = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+        year = parseInt(parts[2]);
+        month = parseInt(parts[0]) - 1; // JavaScript months are 0-indexed
+        day = parseInt(parts[1]);
       }
+      
+      // Create date at noon UTC to avoid timezone shift issues
+      date = new Date(Date.UTC(year, month, day, 12, 0, 0));
     } else {
       date = new Date(dateStr);
     }
