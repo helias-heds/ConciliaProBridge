@@ -2,8 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { SiGooglesheets } from "react-icons/si";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +17,7 @@ import { enUS } from "date-fns/locale";
 export function GoogleSheetsConnect() {
   const [sheetUrl, setSheetUrl] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
   const { toast } = useToast();
 
   const { data: connection } = useQuery<any>({
@@ -47,18 +49,24 @@ export function GoogleSheetsConnect() {
 
   const importMutation = useMutation({
     mutationFn: async () => {
+      setImportProgress(0);
       const res = await apiRequest("POST", "/api/google-sheets/import", {});
       return res.json();
     },
     onSuccess: (data: any) => {
-      toast({
-        title: "Import Successful",
-        description: data.message || `Imported ${data.count} transactions`,
-      });
-      queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/connection"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      setImportProgress(100);
+      setTimeout(() => {
+        toast({
+          title: "Import Successful",
+          description: data.message || `Imported ${data.count} transactions`,
+        });
+        queryClient.invalidateQueries({ queryKey: ["/api/google-sheets/connection"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+        setImportProgress(0);
+      }, 300);
     },
     onError: (error: any) => {
+      setImportProgress(0);
       toast({
         variant: "destructive",
         title: "Import Failed",
@@ -66,6 +74,19 @@ export function GoogleSheetsConnect() {
       });
     },
   });
+
+  // Simulate progress during import
+  useEffect(() => {
+    if (importMutation.isPending && importProgress < 90) {
+      const timer = setInterval(() => {
+        setImportProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + Math.random() * 15;
+        });
+      }, 500);
+      return () => clearInterval(timer);
+    }
+  }, [importMutation.isPending, importProgress]);
 
   const handleConnect = () => {
     if (!sheetUrl) {
@@ -147,23 +168,36 @@ export function GoogleSheetsConnect() {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleImport} 
-                className="flex-1"
-                disabled={importMutation.isPending}
-                data-testid="button-import-sheets"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                {importMutation.isPending ? "Importing..." : "Import Now"}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowForm(true)}
-                data-testid="button-reconnect-sheets"
-              >
-                Reconnect
-              </Button>
+            <div className="space-y-3">
+              {importMutation.isPending && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Importing transactions...</span>
+                    <span className="font-medium">{Math.round(importProgress)}%</span>
+                  </div>
+                  <Progress value={importProgress} className="h-2" data-testid="progress-import" />
+                </div>
+              )}
+              
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleImport} 
+                  className="flex-1"
+                  disabled={importMutation.isPending}
+                  data-testid="button-import-sheets"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {importMutation.isPending ? "Importing..." : "Import Now"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowForm(true)}
+                  data-testid="button-reconnect-sheets"
+                  disabled={importMutation.isPending}
+                >
+                  Reconnect
+                </Button>
+              </div>
             </div>
           </>
         ) : (
