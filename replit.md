@@ -19,7 +19,7 @@ Preferred communication style: Simple, everyday language.
 **Key Design Patterns**: Component composition, separation of concerns, custom hooks, data-first hierarchy, full English (en-US) localization.
 **Pages**: 
 - `/` - Dashboard with overview cards and transaction summary
-- `/transactions` - All transactions view with filtering and table (added Oct 2025)
+- `/transactions` - All transactions view with filtering, manual reconciliation filter for transactions with missing depositor info (added Oct 2025)
 - `/upload` - File upload for bank/card statements and Google Sheets connection
 - `/settings` - Application settings
 - `/help` - Help and documentation
