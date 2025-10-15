@@ -86,6 +86,8 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
   console.log(`📊 Google Sheets: Found ${allRows.length} total rows (including header from first batch)`);
 
   const transactions: SheetTransaction[] = [];
+  let skippedEmpty = 0;
+  let skippedInvalidValue = 0;
   
   // First row of first batch is the header, skip it
   const rows = allRows.slice(1);
@@ -95,9 +97,13 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
   // Process all data rows (header already removed)
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
+    const rowNum = i + 2; // +2 because: +1 for 1-based index, +1 for header
+    
     // Column A (date) and B (value) are required
     if (!row[0] || !row[1]) {
-      continue; // Skip empty rows silently
+      skippedEmpty++;
+      console.log(`⏭️  Row ${rowNum}: Skipped (empty date or value) - Date: "${row[0]}", Value: "${row[1]}"`);
+      continue;
     }
 
     // Column A: Date
@@ -131,7 +137,9 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
     const depositor = row[5] ? row[5].trim() : undefined;
 
     if (isNaN(value)) {
-      continue; // Skip rows with invalid values silently
+      skippedInvalidValue++;
+      console.log(`⏭️  Row ${rowNum}: Skipped (invalid value) - Value: "${row[1]}" → parsed as NaN`);
+      continue;
     }
 
     transactions.push({
@@ -144,5 +152,12 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
   }
 
   console.log(`✅ Google Sheets: Successfully parsed ${transactions.length} transactions (installments)`);
+  if (skippedEmpty > 0) {
+    console.log(`⚠️  Skipped ${skippedEmpty} rows with empty date/value`);
+  }
+  if (skippedInvalidValue > 0) {
+    console.log(`⚠️  Skipped ${skippedInvalidValue} rows with invalid values`);
+  }
+  
   return transactions;
 }
