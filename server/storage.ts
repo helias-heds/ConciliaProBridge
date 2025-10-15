@@ -2,7 +2,7 @@ import { type User, type InsertUser, type Transaction, type InsertTransaction, t
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { transactions, googleSheetsConnections } from "@shared/schema";
-import { eq, asc, sql } from "drizzle-orm";
+import { eq, asc, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -153,8 +153,8 @@ export class DbStorage implements IStorage {
 
   async getTransactions(): Promise<Transaction[]> {
     // Order by reconciliation status first (reconciled, then pending-ledger, then pending-statement),
-    // then by sheetOrder (Google Sheets row number),
-    // then by date for transactions without sheetOrder
+    // then by sheetOrder DESC (most recent/last rows first),
+    // then by date DESC for transactions without sheetOrder
     return await db.select()
       .from(transactions)
       .orderBy(
@@ -164,8 +164,8 @@ export class DbStorage implements IStorage {
           WHEN ${transactions.status} = 'pending-statement' THEN 3 
           ELSE 4 
         END`,
-        asc(transactions.sheetOrder),
-        asc(transactions.date)
+        desc(transactions.sheetOrder),
+        desc(transactions.date)
       );
   }
 

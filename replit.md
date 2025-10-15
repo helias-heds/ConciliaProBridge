@@ -67,7 +67,7 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
 - Import times: ~3.5s for first import of 9,505 transactions, ~1.7s for incremental imports
 - Incremental import using Set-based O(1) duplicate detection with unique key: `date|value|name|depositor`
 - **Row Order Preservation (Oct 15, 2025)**: Each transaction stores its original spreadsheet row number (`sheetOrder` field)
-- **Display Order (Oct 15, 2025)**: Transactions are ordered by reconciliation status (reconciled → pending-ledger → pending-statement), then by spreadsheet row order within each status group
+- **Display Order (Oct 15, 2025)**: Transactions are ordered by reconciliation status (reconciled → pending-ledger → pending-statement), then by **reverse** spreadsheet row order within each status group (most recent entries first, last row of spreadsheet appears at top)
 
 ### Configuration Management
 
