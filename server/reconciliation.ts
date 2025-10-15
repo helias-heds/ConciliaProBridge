@@ -93,6 +93,7 @@ function findBestMatch(
       // Check depositor vs client name
       if (csvTx.depositor && sheetTx.name) {
         const depositorVsName = getNameSimilarity(csvTx.depositor, sheetTx.name);
+        console.log(`[RECONCILE] Depositor "${csvTx.depositor}" vs Client "${sheetTx.name}" = ${depositorVsName}%`);
         if (depositorVsName > nameSimilarity) {
           nameSimilarity = depositorVsName;
           nameSource = "depositor vs client name";
@@ -102,6 +103,7 @@ function findBestMatch(
       // Check depositor vs depositor
       if (csvTx.depositor && sheetTx.depositor) {
         const depositorVsDepositor = getNameSimilarity(csvTx.depositor, sheetTx.depositor);
+        console.log(`[RECONCILE] Depositor "${csvTx.depositor}" vs Depositor "${sheetTx.depositor}" = ${depositorVsDepositor}%`);
         if (depositorVsDepositor > nameSimilarity) {
           nameSimilarity = depositorVsDepositor;
           nameSource = "depositor vs depositor";
@@ -111,6 +113,7 @@ function findBestMatch(
       // Check name vs client name
       if (csvTx.name && sheetTx.name) {
         const nameVsName = getNameSimilarity(csvTx.name, sheetTx.name);
+        console.log(`[RECONCILE] Name "${csvTx.name}" vs Client "${sheetTx.name}" = ${nameVsName}%`);
         if (nameVsName > nameSimilarity) {
           nameSimilarity = nameVsName;
           nameSource = "name vs client name";
@@ -119,6 +122,7 @@ function findBestMatch(
 
       // REQUIRED: Must have at least 50% name similarity for non-unified payments
       if (nameSimilarity < 50) {
+        console.log(`[RECONCILE] ❌ REJECTED: Name similarity ${nameSimilarity}% < 50% (date match, value match, but name failed)`);
         continue; // Skip if name similarity is less than 50%
       }
 
@@ -126,6 +130,7 @@ function findBestMatch(
       const namePoints = Math.round((nameSimilarity / 100) * 40);
       confidence += namePoints;
       reasons.push(`Name similarity: ${nameSimilarity}% (${nameSource})`);
+      console.log(`[RECONCILE] ✅ MATCHED: Confidence=${confidence}, Name similarity=${nameSimilarity}% (${nameSource})`);
     }
 
     // Track best match (highest confidence)
