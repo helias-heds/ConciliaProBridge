@@ -58,9 +58,10 @@ export interface SheetTransaction {
 export async function importFromGoogleSheets(sheetId: string): Promise<SheetTransaction[]> {
   const sheets = await getUncachableGoogleSheetClient();
   
+  // Use A1:F20000 to get up to 20,000 rows (supports large installment sheets)
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
-    range: 'A:F',
+    range: 'A1:F20000',
   });
 
   const rows = response.data.values;
@@ -68,13 +69,18 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
     return [];
   }
 
+  console.log(`📊 Google Sheets: Found ${rows.length} total rows (including header)`);
+
   const transactions: SheetTransaction[] = [];
   
   // Skip header row, start from row 1
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     // Column A (date) and B (value) are required
-    if (!row[0] || !row[1]) continue;
+    if (!row[0] || !row[1]) {
+      console.log(`⏭️  Skipping row ${i + 1}: Missing date or value`);
+      continue;
+    }
 
     // Column A: Date
     const dateStr = row[0];
@@ -106,7 +112,10 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
     // Column F: Depositor Name (Nome do Depositor) - index 5
     const depositor = row[5] ? row[5].trim() : undefined;
 
-    if (isNaN(value)) continue; // Skip if value is invalid
+    if (isNaN(value)) {
+      console.log(`⏭️  Skipping row ${i + 1}: Invalid value`);
+      continue;
+    }
 
     transactions.push({
       date,
@@ -117,5 +126,6 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
     });
   }
 
+  console.log(`✅ Google Sheets: Successfully parsed ${transactions.length} transactions (installments)`);
   return transactions;
 }
