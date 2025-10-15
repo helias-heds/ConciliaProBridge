@@ -343,6 +343,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid sheet URL. Could not extract sheet ID." });
       }
 
+      // CRITICAL: Delete ALL existing Google Sheets transactions before importing
+      // This prevents duplicates when re-importing the same sheet
+      const allTransactions = await storage.getTransactions();
+      const googleSheetsTransactions = allTransactions.filter(tx => tx.source === "Google Sheets");
+      
+      console.log(`🗑️  Deleting ${googleSheetsTransactions.length} existing Google Sheets transactions before re-import`);
+      for (const tx of googleSheetsTransactions) {
+        await storage.deleteTransaction(tx.id);
+      }
+
       const sheetTransactions = await importFromGoogleSheets(connection.sheetId);
       
       const createdTransactions = [];
