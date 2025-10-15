@@ -53,6 +53,7 @@ export interface SheetTransaction {
   car?: string;
   depositor?: string;
   value: number;
+  sheetOrder?: number; // Row number in the spreadsheet
 }
 
 export async function importFromGoogleSheets(sheetId: string): Promise<SheetTransaction[]> {
@@ -157,6 +158,7 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
       car,
       depositor,
       value: Math.abs(value),
+      sheetOrder: rowNum, // Store the row number to maintain order
     });
   }
 

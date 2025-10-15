@@ -21,6 +21,7 @@ export const transactions = pgTable("transactions", {
   source: varchar("source", { length: 100 }),
   paymentMethod: text("payment_method"),
   matchedTransactionId: varchar("matched_transaction_id"),
+  sheetOrder: integer("sheet_order"), // Order in the original spreadsheet (row number)
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 

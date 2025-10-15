@@ -60,11 +60,13 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
 **Google Sheets Integration**: 
 - OAuth authentication managed by Replit
 - Column mapping for Date (A), Value (B), Car (D), Client Name (E), Depositor Name (F)
+- **Date Parsing (Oct 15, 2025)**: Dates parsed as UTC at noon (12:00) to prevent timezone shift issues where day 15 would appear as day 14
 - Handles date/currency parsing and skips invalid rows
 - Uses batchGet with 3 ranges to fetch up to 15,000 rows efficiently
 - **Performance Optimization (Oct 2025)**: Batch insert in chunks of 1,000 transactions to bypass PostgreSQL parameter limits
 - Import times: ~3.5s for first import of 9,505 transactions, ~1.7s for incremental imports
 - Incremental import using Set-based O(1) duplicate detection with unique key: `date|value|name|depositor`
+- **Row Order Preservation (Oct 15, 2025)**: Each transaction stores its original spreadsheet row number (`sheetOrder` field) and transactions are displayed in the same order as they appear in the Google Sheets ledger
 
 ### Configuration Management
 

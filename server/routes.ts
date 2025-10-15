@@ -385,6 +385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           confidence: null,
           paymentMethod: null,
           matchedTransactionId: null,
+          sheetOrder: sheetTx.sheetOrder || null,
         });
         
         // Add to existing keys to prevent duplicates within this import
