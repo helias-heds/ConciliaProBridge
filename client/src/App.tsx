@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Dashboard from "@/pages/Dashboard";
 import Transactions from "@/pages/Transactions";
+import ManualReconciliation from "@/pages/ManualReconciliation";
 import Upload from "@/pages/Upload";
 import Settings from "@/pages/Settings";
 import Help from "@/pages/Help";
@@ -19,6 +20,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/transactions" component={Transactions} />
+      <Route path="/manual-reconciliation" component={ManualReconciliation} />
       <Route path="/upload" component={Upload} />
       <Route path="/settings" component={Settings} />
       <Route path="/help" component={Help} />
