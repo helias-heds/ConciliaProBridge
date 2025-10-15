@@ -17,6 +17,12 @@ Preferred communication style: Simple, everyday language.
 **Routing**: wouter for lightweight client-side routing.
 **State Management**: TanStack Query (React Query) for server state; local React state for UI interactions; custom theme context for light/dark mode.
 **Key Design Patterns**: Component composition, separation of concerns, custom hooks, data-first hierarchy, full English (en-US) localization.
+**Pages**: 
+- `/` - Dashboard with overview cards and transaction summary
+- `/transactions` - All transactions view with filtering and table (added Oct 2025)
+- `/upload` - File upload for bank/card statements and Google Sheets connection
+- `/settings` - Application settings
+- `/help` - Help and documentation
 
 ### Backend Architecture
 
@@ -51,7 +57,14 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
 
 **Supported Formats**: OFX and CSV for bank/card statements; Google Sheets API for ledger spreadsheets.
 **Upload Flow**: Drag-and-drop/selection, client-side validation, server-side parsing and normalization, storage with source tracking, and automatic reconciliation trigger.
-**Google Sheets Integration**: OAuth authentication managed by Replit. Column mapping for Date (A), Value (B), Car (D), Client Name (E), Depositor Name (F). Handles date/currency parsing and skips invalid rows.
+**Google Sheets Integration**: 
+- OAuth authentication managed by Replit
+- Column mapping for Date (A), Value (B), Car (D), Client Name (E), Depositor Name (F)
+- Handles date/currency parsing and skips invalid rows
+- Uses batchGet with 3 ranges to fetch up to 15,000 rows efficiently
+- **Performance Optimization (Oct 2025)**: Batch insert in chunks of 1,000 transactions to bypass PostgreSQL parameter limits
+- Import times: ~3.5s for first import of 9,505 transactions, ~1.7s for incremental imports
+- Incremental import using Set-based O(1) duplicate detection with unique key: `date|value|name|depositor`
 
 ### Configuration Management
 

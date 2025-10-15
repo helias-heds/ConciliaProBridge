@@ -8,6 +8,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Dashboard from "@/pages/Dashboard";
+import Transactions from "@/pages/Transactions";
 import Upload from "@/pages/Upload";
 import Settings from "@/pages/Settings";
 import Help from "@/pages/Help";
@@ -17,6 +18,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/transactions" component={Transactions} />
       <Route path="/upload" component={Upload} />
       <Route path="/settings" component={Settings} />
       <Route path="/help" component={Help} />

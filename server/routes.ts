@@ -361,7 +361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
       );
       
-      const createdTransactions = [];
+      const newTransactions = [];
       let skippedCount = 0;
       
       for (const sheetTx of sheetTransactions) {
@@ -374,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           continue;
         }
 
-        const transaction = await storage.createTransaction({
+        newTransactions.push({
           date: sheetTx.date,
           name: sheetTx.name,
           value: sheetTx.value.toString(),
@@ -386,11 +386,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentMethod: null,
           matchedTransactionId: null,
         });
-        createdTransactions.push(transaction);
         
         // Add to existing keys to prevent duplicates within this import
         existingKeys.add(transactionKey);
       }
+
+      // Batch insert all new transactions at once
+      const createdTransactions = await storage.createTransactions(newTransactions);
 
       console.log(`✅ Imported ${createdTransactions.length} new transactions`);
       console.log(`⏭️  Skipped ${skippedCount} duplicate transactions`);

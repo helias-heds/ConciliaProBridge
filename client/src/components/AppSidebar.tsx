@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Upload, Settings, HelpCircle } from "lucide-react";
+import { LayoutDashboard, Receipt, Upload, Settings, HelpCircle } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 const menuItems = [
@@ -16,6 +16,11 @@ const menuItems = [
     title: "Dashboard",
     url: "/",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Transactions",
+    url: "/transactions",
+    icon: Receipt,
   },
   {
     title: "File Upload",

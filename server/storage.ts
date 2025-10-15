@@ -167,8 +167,18 @@ export class DbStorage implements IStorage {
 
   async createTransactions(insertTransactions: InsertTransaction[]): Promise<Transaction[]> {
     if (insertTransactions.length === 0) return [];
-    const results = await db.insert(transactions).values(insertTransactions).returning();
-    return results;
+    
+    // PostgreSQL has a parameter limit (~65,535), so we batch insert in chunks
+    const BATCH_SIZE = 1000;
+    const allResults: Transaction[] = [];
+    
+    for (let i = 0; i < insertTransactions.length; i += BATCH_SIZE) {
+      const batch = insertTransactions.slice(i, i + BATCH_SIZE);
+      const results = await db.insert(transactions).values(batch).returning();
+      allResults.push(...results);
+    }
+    
+    return allResults;
   }
 
   async updateTransaction(id: string, updates: Partial<InsertTransaction>): Promise<Transaction | undefined> {
