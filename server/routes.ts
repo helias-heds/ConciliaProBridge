@@ -343,20 +343,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid sheet URL. Could not extract sheet ID." });
       }
 
-      // CRITICAL: Delete ALL existing Google Sheets transactions before importing
-      // This prevents duplicates when re-importing the same sheet
-      const allTransactions = await storage.getTransactions();
-      const googleSheetsTransactions = allTransactions.filter(tx => tx.source === "Google Sheets");
-      
-      console.log(`🗑️  Deleting ${googleSheetsTransactions.length} existing Google Sheets transactions before re-import`);
-      for (const tx of googleSheetsTransactions) {
-        await storage.deleteTransaction(tx.id);
-      }
-
       const sheetTransactions = await importFromGoogleSheets(connection.sheetId);
       
+      // Get existing Google Sheets transactions to check for duplicates
+      const allTransactions = await storage.getTransactions();
+      const existingSheetTxs = allTransactions.filter(tx => tx.source === "Google Sheets");
+      
+      console.log(`📊 Found ${sheetTransactions.length} transactions in Google Sheets`);
+      console.log(`📦 Found ${existingSheetTxs.length} existing Google Sheets transactions in database`);
+      
       const createdTransactions = [];
+      let skippedCount = 0;
+      
       for (const sheetTx of sheetTransactions) {
+        // Check if this transaction already exists (same date + value + name + depositor)
+        const isDuplicate = existingSheetTxs.some(existing => {
+          const sameDate = existing.date.toISOString().split('T')[0] === sheetTx.date.toISOString().split('T')[0];
+          const sameValue = parseFloat(existing.value) === sheetTx.value;
+          const sameName = existing.name === sheetTx.name;
+          const sameDepositor = existing.depositor === (sheetTx.depositor || null);
+          return sameDate && sameValue && sameName && sameDepositor;
+        });
+
+        if (isDuplicate) {
+          skippedCount++;
+          continue;
+        }
+
         const transaction = await storage.createTransaction({
           date: sheetTx.date,
           name: sheetTx.name,
@@ -372,14 +385,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdTransactions.push(transaction);
       }
 
+      console.log(`✅ Imported ${createdTransactions.length} new transactions`);
+      console.log(`⏭️  Skipped ${skippedCount} duplicate transactions`);
+
       await storage.updateGoogleSheetsConnection(connection.id, {
         lastImportDate: new Date(),
         lastImportCount: createdTransactions.length,
       });
 
       res.json({
-        message: `Successfully imported ${createdTransactions.length} transactions from Google Sheets`,
+        message: `Successfully imported ${createdTransactions.length} new transactions from Google Sheets (${skippedCount} duplicates skipped)`,
         count: createdTransactions.length,
+        skipped: skippedCount,
+        total: sheetTransactions.length,
         connection: {
           sheetUrl: connection.sheetUrl,
           lastImportDate: new Date(),
