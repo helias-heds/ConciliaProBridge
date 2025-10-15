@@ -156,11 +156,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const files = req.files as Express.Multer.File[];
       const allTransactions: any[] = [];
+      const existingTransactions = await storage.getTransactions();
 
       for (const file of files) {
+        console.log(`Processing file: ${file.originalname}`);
         const parsedTransactions = await parseFile(file);
+        console.log(`Parsed ${parsedTransactions.length} transactions from ${file.originalname}`);
         
         for (const parsed of parsedTransactions) {
+          // Check for duplicates based on date, value, and source
+          const isDuplicate = existingTransactions.some(existing => {
+            const sameDate = new Date(existing.date).toDateString() === parsed.date.toDateString();
+            const sameValue = parseFloat(existing.value) === parsed.value;
+            const sameSource = existing.source === parsed.source;
+            return sameDate && sameValue && sameSource;
+          });
+
+          if (isDuplicate) {
+            console.log(`Skipping duplicate: date=${parsed.date.toISOString()}, value=${parsed.value}, source=${parsed.source}`);
+            continue;
+          }
+
           const transaction = await storage.createTransaction({
             date: parsed.date,
             name: parsed.name,
@@ -176,6 +192,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           allTransactions.push(transaction);
         }
       }
+
+      console.log(`Total imported: ${allTransactions.length} transactions (after duplicate filtering)`);
 
       res.status(201).json({
         message: `Successfully imported ${allTransactions.length} transactions from ${files.length} file(s)`,

@@ -91,7 +91,6 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
                   const month = parseInt(parts[0]) - 1;
                   const day = parseInt(parts[1]);
                   date = new Date(year, month, day);
-                  console.log(`CSV Date parsing: "${dateField}" → parts=[${parts.join(',')}], year=${year}, month=${month}, day=${day} → Date=${date.toISOString()}`);
                 }
               } else if (dateField.includes("-")) {
                 date = new Date(dateField);
@@ -103,31 +102,40 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
                 ? parseFloat(valueField.replace(/[,$]/g, ""))
                 : parseFloat(valueField);
 
+              // Skip if value is 0 or NaN
+              if (!value || value === 0) {
+                continue;
+              }
+
               // Extract payment method and client name from description
-              // Format: "Zelle from John Smith" -> paymentMethod="Zelle", name="John Smith"
               let paymentMethod: string | undefined;
-              let clientName = nameField || "Transaction";
+              let clientName: string;
               let depositor: string | undefined;
               
               if (nameField && nameField.toLowerCase().includes("zelle")) {
+                // Zelle transaction: extract name from "Zelle from [Name]"
                 paymentMethod = "Zelle";
                 
-                // Extract client name from text after "from"
                 const fromMatch = nameField.match(/from\s+(.+)/i);
                 if (fromMatch) {
                   let rawName = fromMatch[1].trim();
-                  
-                  // Remove "on" and everything after it
                   rawName = rawName.replace(/\s+on\s+.*/i, '');
-                  
-                  // Remove numbers and special characters at the end
                   rawName = rawName.replace(/[\d\-\(\)]+.*$/, '');
-                  
-                  // Clean up extra whitespace
                   clientName = rawName.trim();
-                  depositor = clientName; // Store same value in depositor for matching
+                  depositor = clientName;
+                } else {
+                  clientName = nameField;
                 }
+              } else if (nameField) {
+                // Has description but not Zelle - generic transaction
+                clientName = nameField;
+              } else {
+                // No description - unified payment (credit card)
+                paymentMethod = "Credit Card";
+                clientName = "Credit Card Payment";
               }
+
+              console.log(`CSV parsed transaction: date=${date.toISOString()}, value=${value}, name="${clientName}", paymentMethod=${paymentMethod || 'none'}, depositor=${depositor || 'none'}`);
 
               transactions.push({
                 date,
