@@ -352,20 +352,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`📊 Found ${sheetTransactions.length} transactions in Google Sheets`);
       console.log(`📦 Found ${existingSheetTxs.length} existing Google Sheets transactions in database`);
       
+      // Create a Set of unique keys for fast duplicate detection
+      const existingKeys = new Set(
+        existingSheetTxs.map(tx => {
+          const dateKey = tx.date.toISOString().split('T')[0];
+          const valueKey = parseFloat(tx.value);
+          return `${dateKey}|${valueKey}|${tx.name}|${tx.depositor || ''}`;
+        })
+      );
+      
       const createdTransactions = [];
       let skippedCount = 0;
       
       for (const sheetTx of sheetTransactions) {
-        // Check if this transaction already exists (same date + value + name + depositor)
-        const isDuplicate = existingSheetTxs.some(existing => {
-          const sameDate = existing.date.toISOString().split('T')[0] === sheetTx.date.toISOString().split('T')[0];
-          const sameValue = parseFloat(existing.value) === sheetTx.value;
-          const sameName = existing.name === sheetTx.name;
-          const sameDepositor = existing.depositor === (sheetTx.depositor || null);
-          return sameDate && sameValue && sameName && sameDepositor;
-        });
-
-        if (isDuplicate) {
+        // Create unique key for this transaction
+        const dateKey = sheetTx.date.toISOString().split('T')[0];
+        const transactionKey = `${dateKey}|${sheetTx.value}|${sheetTx.name}|${sheetTx.depositor || ''}`;
+        
+        if (existingKeys.has(transactionKey)) {
           skippedCount++;
           continue;
         }
@@ -383,6 +387,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           matchedTransactionId: null,
         });
         createdTransactions.push(transaction);
+        
+        // Add to existing keys to prevent duplicates within this import
+        existingKeys.add(transactionKey);
       }
 
       console.log(`✅ Imported ${createdTransactions.length} new transactions`);
