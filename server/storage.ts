@@ -1,5 +1,8 @@
 import { type User, type InsertUser, type Transaction, type InsertTransaction, type GoogleSheetsConnection, type InsertGoogleSheetsConnection } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { transactions, googleSheetsConnections } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -135,4 +138,77 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DbStorage implements IStorage {
+  async getUser(id: string): Promise<User | undefined> {
+    throw new Error("User management not implemented yet");
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    throw new Error("User management not implemented yet");
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    throw new Error("User management not implemented yet");
+  }
+
+  async getTransactions(): Promise<Transaction[]> {
+    return await db.select().from(transactions);
+  }
+
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    const results = await db.select().from(transactions).where(eq(transactions.id, id));
+    return results[0];
+  }
+
+  async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
+    const results = await db.insert(transactions).values(insertTransaction).returning();
+    return results[0];
+  }
+
+  async createTransactions(insertTransactions: InsertTransaction[]): Promise<Transaction[]> {
+    if (insertTransactions.length === 0) return [];
+    const results = await db.insert(transactions).values(insertTransactions).returning();
+    return results;
+  }
+
+  async updateTransaction(id: string, updates: Partial<InsertTransaction>): Promise<Transaction | undefined> {
+    const results = await db
+      .update(transactions)
+      .set(updates)
+      .where(eq(transactions.id, id))
+      .returning();
+    return results[0];
+  }
+
+  async deleteTransaction(id: string): Promise<boolean> {
+    const results = await db.delete(transactions).where(eq(transactions.id, id)).returning();
+    return results.length > 0;
+  }
+
+  async getGoogleSheetsConnection(): Promise<GoogleSheetsConnection | undefined> {
+    const results = await db.select().from(googleSheetsConnections).limit(1);
+    return results[0];
+  }
+
+  async saveGoogleSheetsConnection(insertConnection: InsertGoogleSheetsConnection): Promise<GoogleSheetsConnection> {
+    // Delete existing connection first (we only support one)
+    await db.delete(googleSheetsConnections);
+    
+    const results = await db
+      .insert(googleSheetsConnections)
+      .values(insertConnection)
+      .returning();
+    return results[0];
+  }
+
+  async updateGoogleSheetsConnection(id: string, updates: Partial<GoogleSheetsConnection>): Promise<GoogleSheetsConnection | undefined> {
+    const results = await db
+      .update(googleSheetsConnections)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(googleSheetsConnections.id, id))
+      .returning();
+    return results[0];
+  }
+}
+
+export const storage = new DbStorage();
