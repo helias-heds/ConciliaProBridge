@@ -19,7 +19,7 @@ Preferred communication style: Simple, everyday language.
 **Key Design Patterns**: Component composition, separation of concerns, custom hooks, data-first hierarchy, full English (en-US) localization.
 **Pages**: 
 - `/` - Dashboard with overview cards and transaction summary
-- `/transactions` - All transactions view with filtering, manual reconciliation filter for transactions with missing depositor info (added Oct 2025)
+- `/transactions` - All transactions view with filtering, manual reconciliation filter for transactions with missing depositor info, date range filter for manual reconciliation (added Oct 2025)
 - `/upload` - File upload for bank/card statements and Google Sheets connection
 - `/settings` - Application settings
 - `/help` - Help and documentation
@@ -51,7 +51,11 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
 -   Customer/depositor name must match (CSV depositor vs. Sheet client/depositor).
 -   Confidence score calculated based on date, value, Zelle, and name match.
 
-**Manual Reconciliation**: When automatic matching fails (e.g., partial name matches like "John Smith" vs "John Smth"), users can manually reconcile transactions via a Link2 icon button on pending transactions. The system shows candidate matches with opposite status (pending-ledger ↔ pending-statement), allows selection, and updates both to "reconciled" with 100% confidence. Backend validates complementary statuses and prevents self-reconciliation.
+**Manual Reconciliation**: 
+- **Automatic Filter**: Identifies ~5,000+ transactions with missing depositor info that need manual attention
+- **Date Range Filter**: Filter manual reconciliation transactions by date range (From/To dates) with local timezone support
+- **Visual Highlighting**: Orange background and "Empty" text for transactions missing depositor field
+- **Interactive**: When automatic matching fails (e.g., partial name matches like "John Smith" vs "John Smth"), users can manually reconcile via Link2 icon button. System shows candidate matches with opposite status (pending-ledger ↔ pending-statement), allows selection, and updates both to "reconciled" with 100% confidence. Backend validates complementary statuses and prevents self-reconciliation.
 
 ### Data Import Pipeline
 

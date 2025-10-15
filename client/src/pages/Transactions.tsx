@@ -1,30 +1,74 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { Calendar } from "lucide-react";
 
 export default function Transactions() {
   const [filter, setFilter] = useState<"all" | "needs-manual">("all");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
   
   const { data: apiTransactions, isLoading } = useQuery<any[]>({
     queryKey: ["/api/transactions"],
   });
 
-  const transactions = (apiTransactions || []).map(t => ({
-    ...t,
-    date: new Date(t.date),
-    value: parseFloat(t.value),
-  }));
+  const transactions = useMemo(() => 
+    (apiTransactions || []).map(t => ({
+      ...t,
+      date: new Date(t.date),
+      value: parseFloat(t.value),
+    })),
+    [apiTransactions]
+  );
 
-  const pendingLedger = transactions.filter(t => t.status === "pending-ledger");
-  
-  // Transactions that need manual reconciliation (missing depositor or other fields)
-  const needsManualReconciliation = transactions.filter(t => 
-    t.status === "pending-ledger" && 
-    (!t.depositor || t.depositor === '')
+  const pendingLedger = useMemo(() => 
+    transactions.filter(t => t.status === "pending-ledger"),
+    [transactions]
   );
   
-  const displayTransactions = filter === "needs-manual" 
-    ? needsManualReconciliation 
-    : transactions;
+  // Transactions that need manual reconciliation (missing depositor or other fields)
+  const needsManualReconciliationBase = useMemo(() => 
+    transactions.filter(t => 
+      t.status === "pending-ledger" && 
+      (!t.depositor || t.depositor === '')
+    ),
+    [transactions]
+  );
+
+  // Apply date filter to manual reconciliation transactions
+  const needsManualReconciliation = useMemo(() => {
+    if (filter !== "needs-manual" || (!startDate && !endDate)) {
+      return needsManualReconciliationBase;
+    }
+
+    return needsManualReconciliationBase.filter(t => {
+      const transactionDate = new Date(t.date);
+      transactionDate.setHours(0, 0, 0, 0);
+      
+      if (startDate && endDate) {
+        // Parse dates in local timezone to avoid off-by-one errors
+        const start = new Date(`${startDate}T00:00:00`);
+        const end = new Date(`${endDate}T23:59:59.999`);
+        return transactionDate >= start && transactionDate <= end;
+      } else if (startDate) {
+        const start = new Date(`${startDate}T00:00:00`);
+        return transactionDate >= start;
+      } else if (endDate) {
+        const end = new Date(`${endDate}T23:59:59.999`);
+        return transactionDate <= end;
+      }
+      return true;
+    });
+  }, [needsManualReconciliationBase, filter, startDate, endDate]);
+  
+  const displayTransactions = useMemo(() => 
+    filter === "needs-manual" ? needsManualReconciliation : transactions,
+    [filter, needsManualReconciliation, transactions]
+  );
+
+  const clearDateFilter = () => {
+    setStartDate("");
+    setEndDate("");
+  };
 
   if (isLoading) {
     return (
@@ -66,7 +110,7 @@ export default function Transactions() {
         </div>
       </div>
 
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 flex flex-wrap gap-2 items-center">
         <button
           onClick={() => setFilter("all")}
           className={`px-4 py-2 rounded-lg border ${
@@ -89,6 +133,47 @@ export default function Transactions() {
         >
           Needs Manual Reconciliation ({needsManualReconciliation.length})
         </button>
+
+        {filter === "needs-manual" && (
+          <>
+            <div className="flex items-center gap-2 ml-4 border rounded-lg p-2">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <label className="text-sm text-muted-foreground">From:</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-2 py-1 border rounded text-sm"
+                data-testid="input-date-from"
+              />
+              <label className="text-sm text-muted-foreground ml-2">To:</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-2 py-1 border rounded text-sm"
+                data-testid="input-date-to"
+              />
+              {(startDate || endDate) && (
+                <button
+                  onClick={clearDateFilter}
+                  className="px-3 py-1 text-sm border rounded hover-elevate"
+                  data-testid="button-clear-date"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            {(startDate || endDate) && (
+              <div className="text-sm text-muted-foreground">
+                Showing {displayTransactions.length} of {transactions.filter(t => 
+                  t.status === "pending-ledger" && 
+                  (!t.depositor || t.depositor === '')
+                ).length} transactions
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       <div className="border rounded-lg" data-testid="transactions-table">
