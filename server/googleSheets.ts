@@ -58,28 +58,47 @@ export interface SheetTransaction {
 export async function importFromGoogleSheets(sheetId: string): Promise<SheetTransaction[]> {
   const sheets = await getUncachableGoogleSheetClient();
   
-  // Use A1:F20000 to get up to 20,000 rows (supports large installment sheets)
-  const response = await sheets.spreadsheets.values.get({
+  // Get all rows using batchGet to avoid API response limits
+  // Split into chunks: 0-5000, 5000-10000, 10000-15000, 15000-20000
+  const batchResponse = await sheets.spreadsheets.values.batchGet({
     spreadsheetId: sheetId,
-    range: 'A1:F20000',
+    ranges: [
+      'A1:F5000',
+      'A5001:F10000',
+      'A10001:F15000',
+      'A15001:F20000'
+    ],
   });
 
-  const rows = response.data.values;
-  if (!rows || rows.length === 0) {
+  // Combine all rows from all ranges
+  let allRows: any[][] = [];
+  if (batchResponse.data.valueRanges) {
+    for (const range of batchResponse.data.valueRanges) {
+      if (range.values && range.values.length > 0) {
+        allRows = allRows.concat(range.values);
+      }
+    }
+  }
+
+  if (allRows.length === 0) {
     return [];
   }
 
-  console.log(`📊 Google Sheets: Found ${rows.length} total rows (including header)`);
+  console.log(`📊 Google Sheets: Found ${allRows.length} total rows (including header from first batch)`);
 
   const transactions: SheetTransaction[] = [];
   
-  // Skip header row, start from row 1
-  for (let i = 1; i < rows.length; i++) {
+  // First row of first batch is the header, skip it
+  const rows = allRows.slice(1);
+  
+  console.log(`📋 Processing ${rows.length} data rows (header already removed)`);
+  
+  // Process all data rows (header already removed)
+  for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     // Column A (date) and B (value) are required
     if (!row[0] || !row[1]) {
-      console.log(`⏭️  Skipping row ${i + 1}: Missing date or value`);
-      continue;
+      continue; // Skip empty rows silently
     }
 
     // Column A: Date
@@ -113,8 +132,7 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
     const depositor = row[5] ? row[5].trim() : undefined;
 
     if (isNaN(value)) {
-      console.log(`⏭️  Skipping row ${i + 1}: Invalid value`);
-      continue;
+      continue; // Skip rows with invalid values silently
     }
 
     transactions.push({
