@@ -59,14 +59,13 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
   const sheets = await getUncachableGoogleSheetClient();
   
   // Get all rows using batchGet to avoid API response limits
-  // Split into chunks: 0-5000, 5000-10000, 10000-15000, 15000-20000
+  // Split into chunks: 0-5000, 5000-10000, 10000-15000 (max 15k to be safe)
   const batchResponse = await sheets.spreadsheets.values.batchGet({
     spreadsheetId: sheetId,
     ranges: [
       'A1:F5000',
       'A5001:F10000',
-      'A10001:F15000',
-      'A15001:F20000'
+      'A10001:F15000'
     ],
   });
 
