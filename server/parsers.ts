@@ -66,6 +66,14 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
       skipEmptyLines: true,
       complete: (results) => {
         try {
+          console.log(`\n=== CSV PARSING START: ${filename} ===`);
+          console.log(`Total rows in CSV: ${results.data.length}`);
+          
+          if (results.data.length > 0) {
+            console.log('First row columns:', Object.keys(results.data[0]));
+            console.log('First row sample:', results.data[0]);
+          }
+          
           const transactions: ParsedTransaction[] = [];
           
           for (const row of results.data as any[]) {
