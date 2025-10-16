@@ -203,9 +203,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const sourcePrefix = uploadType === 'stripe' ? 'Stripe' : 'Wells Fargo';
           const enhancedSource = `${sourcePrefix} - ${parsed.source}`;
           
-          // Check for duplicates across all sources
-          // Use date + value + depositor/name to detect duplicates between Google Sheets and CSV uploads
-          const isDuplicate = existingTransactions.some(existing => {
+          // For Bank CSV: only compare against same source (Wells Fargo vs Wells Fargo)
+          // For Stripe: only compare against same source (Stripe vs Stripe)
+          // Never compare CSV against Google Sheets ledger
+          const relevantExisting = existingTransactions.filter(tx => 
+            tx.source?.startsWith(sourcePrefix)
+          );
+          
+          // Check for duplicates ONLY within same source
+          const isDuplicate = relevantExisting.some(existing => {
             const sameDate = new Date(existing.date).toDateString() === parsed.date.toDateString();
             const sameValue = parseFloat(existing.value) === parsed.value;
             
