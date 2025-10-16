@@ -102,12 +102,31 @@ export function ReconciliationDetailsDialog({
                     </div>
                   </div>
 
-                  <div>
-                    <div className="text-xs text-muted-foreground">Name / Depositor</div>
-                    <div className="font-medium" data-testid="text-original-name">
-                      {data.original.depositor || data.original.name}
+                  {(data.original.source?.includes("sheet") || data.original.source?.includes("Sheet")) ? (
+                    <>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Client Name</div>
+                        <div className="font-medium" data-testid="text-original-name">
+                          {data.original.name}
+                        </div>
+                      </div>
+                      {data.original.depositor && (
+                        <div>
+                          <div className="text-xs text-muted-foreground">Depositor Name</div>
+                          <div className="font-medium" data-testid="text-original-depositor">
+                            {data.original.depositor}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div>
+                      <div className="text-xs text-muted-foreground">Name / Depositor</div>
+                      <div className="font-medium" data-testid="text-original-name">
+                        {data.original.depositor || data.original.name}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {data.original.car && (
                     <div>
@@ -150,12 +169,31 @@ export function ReconciliationDetailsDialog({
                     </div>
                   </div>
 
-                  <div>
-                    <div className="text-xs text-muted-foreground">Name / Depositor</div>
-                    <div className="font-medium" data-testid="text-matched-name">
-                      {data.matched.depositor || data.matched.name}
+                  {(data.matched.source?.includes("sheet") || data.matched.source?.includes("Sheet")) ? (
+                    <>
+                      <div>
+                        <div className="text-xs text-muted-foreground">Client Name</div>
+                        <div className="font-medium" data-testid="text-matched-name">
+                          {data.matched.name}
+                        </div>
+                      </div>
+                      {data.matched.depositor && (
+                        <div>
+                          <div className="text-xs text-muted-foreground">Depositor Name</div>
+                          <div className="font-medium" data-testid="text-matched-depositor">
+                            {data.matched.depositor}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div>
+                      <div className="text-xs text-muted-foreground">Name / Depositor</div>
+                      <div className="font-medium" data-testid="text-matched-name">
+                        {data.matched.depositor || data.matched.name}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {data.matched.car && (
                     <div>
