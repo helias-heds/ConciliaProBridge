@@ -9,7 +9,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
-  getTransactions(): Promise<Transaction[]>;
+  getTransactions(limit?: number, offset?: number): Promise<Transaction[]>;
   getTransaction(id: string): Promise<Transaction | undefined>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   createTransactions(transactions: InsertTransaction[]): Promise<Transaction[]>;
@@ -51,8 +51,43 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async getTransactions(): Promise<Transaction[]> {
-    return Array.from(this.transactions.values());
+  async getTransactions(limit?: number, offset?: number): Promise<Transaction[]> {
+    const allTransactions = Array.from(this.transactions.values());
+    
+    // Sort transactions deterministically to match DbStorage behavior
+    // Order by: status (reconciled -> pending-ledger -> pending-statement), 
+    // then sheetOrder DESC, then date DESC
+    const sorted = allTransactions.sort((a, b) => {
+      // Status priority
+      const statusOrder: Record<string, number> = {
+        'reconciled': 1,
+        'pending-ledger': 2,
+        'pending-statement': 3
+      };
+      const statusDiff = (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4);
+      if (statusDiff !== 0) return statusDiff;
+      
+      // Sheet order (DESC - nulls last)
+      if (a.sheetOrder !== null && b.sheetOrder !== null) {
+        if (a.sheetOrder !== b.sheetOrder) return b.sheetOrder - a.sheetOrder;
+      } else if (a.sheetOrder !== null) {
+        return -1;
+      } else if (b.sheetOrder !== null) {
+        return 1;
+      }
+      
+      // Date (DESC)
+      return b.date.getTime() - a.date.getTime();
+    });
+    
+    if (limit === undefined && offset === undefined) {
+      return sorted;
+    }
+    
+    const startIndex = offset || 0;
+    const endIndex = limit !== undefined ? startIndex + limit : sorted.length;
+    
+    return sorted.slice(startIndex, endIndex);
   }
 
   async getTransaction(id: string): Promise<Transaction | undefined> {
@@ -168,11 +203,11 @@ export class DbStorage implements IStorage {
     throw new Error("User management not implemented yet");
   }
 
-  async getTransactions(): Promise<Transaction[]> {
+  async getTransactions(limit?: number, offset?: number): Promise<Transaction[]> {
     // Order by reconciliation status first (reconciled, then pending-ledger, then pending-statement),
     // then by sheetOrder DESC (most recent/last rows first),
     // then by date DESC for transactions without sheetOrder
-    return await db.select()
+    let query = db.select()
       .from(transactions)
       .orderBy(
         sql`CASE 
@@ -184,6 +219,16 @@ export class DbStorage implements IStorage {
         desc(transactions.sheetOrder),
         desc(transactions.date)
       );
+    
+    if (limit !== undefined) {
+      query = query.limit(limit) as any;
+    }
+    
+    if (offset !== undefined) {
+      query = query.offset(offset) as any;
+    }
+    
+    return await query;
   }
 
   async getTransaction(id: string): Promise<Transaction | undefined> {

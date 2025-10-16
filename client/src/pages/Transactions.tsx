@@ -1,24 +1,46 @@
-import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Calendar } from "lucide-react";
 
 export default function Transactions() {
   const [filter, setFilter] = useState<"all" | "needs-manual">("all");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   
-  const { data: apiTransactions, isLoading } = useQuery<any[]>({
-    queryKey: ["/api/transactions"],
+  const { 
+    data, 
+    isLoading, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useInfiniteQuery({
+    queryKey: ["/api/transactions", "infinite"],
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await fetch(`/api/transactions?limit=50&offset=${pageParam}`);
+      if (!response.ok) throw new Error('Failed to fetch transactions');
+      return response.json();
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      // If the last page has 50 items, there might be more
+      if (lastPage.length === 50) {
+        return allPages.length * 50;
+      }
+      return undefined;
+    },
+    initialPageParam: 0,
   });
 
-  const transactions = useMemo(() => 
-    (apiTransactions || []).map(t => ({
-      ...t,
-      date: new Date(t.date),
-      value: parseFloat(t.value),
-    })),
-    [apiTransactions]
-  );
+  const transactions = useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap(page => 
+      page.map((t: any) => ({
+        ...t,
+        date: new Date(t.date),
+        value: parseFloat(t.value),
+      }))
+    );
+  }, [data]);
 
   const pendingLedger = useMemo(() => 
     transactions.filter(t => t.status === "pending-ledger"),
@@ -69,6 +91,29 @@ export default function Transactions() {
     setStartDate("");
     setEndDate("");
   };
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (isLoading) {
     return (
@@ -189,7 +234,7 @@ export default function Transactions() {
             </tr>
           </thead>
           <tbody>
-            {displayTransactions.slice(0, 50).map((t) => (
+            {displayTransactions.map((t) => (
               <tr 
                 key={t.id} 
                 className={`border-b ${
@@ -219,8 +264,18 @@ export default function Transactions() {
             ))}
           </tbody>
         </table>
-        <div className="p-4 text-sm text-muted-foreground">
-          Showing {Math.min(50, displayTransactions.length)} of {displayTransactions.length} transactions
+        
+        {/* Load more trigger */}
+        <div ref={loadMoreRef} className="p-4 text-center">
+          {isFetchingNextPage ? (
+            <p className="text-sm text-muted-foreground" data-testid="text-loading-more">Loading more transactions...</p>
+          ) : hasNextPage ? (
+            <p className="text-sm text-muted-foreground">Scroll down to load more</p>
+          ) : (
+            <p className="text-sm text-muted-foreground" data-testid="text-all-loaded">
+              Showing {displayTransactions.length} transactions
+            </p>
+          )}
         </div>
       </div>
     </div>

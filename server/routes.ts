@@ -14,7 +14,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/transactions", async (req, res) => {
     try {
-      const transactions = await storage.getTransactions();
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+      const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined;
+      
+      const transactions = await storage.getTransactions(limit, offset);
       res.json(transactions);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
