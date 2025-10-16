@@ -33,6 +33,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/transactions/:id/match", async (req, res) => {
+    try {
+      const transaction = await storage.getTransaction(req.params.id);
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+      
+      if (!transaction.matchedTransactionId) {
+        return res.status(404).json({ error: "No matched transaction found" });
+      }
+
+      const matchedTransaction = await storage.getTransaction(transaction.matchedTransactionId);
+      if (!matchedTransaction) {
+        return res.status(404).json({ error: "Matched transaction not found" });
+      }
+
+      res.json({
+        original: transaction,
+        matched: matchedTransaction
+      });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/transactions", async (req, res) => {
     try {
       // Transform date string to Date object if needed

@@ -57,6 +57,14 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
 - **Visual Highlighting**: Orange background and "Empty" text for transactions missing depositor field
 - **Interactive**: When automatic matching fails (e.g., partial name matches like "John Smith" vs "John Smth"), users can manually reconcile via Link2 icon button. System shows candidate matches with opposite status (pending-ledger ↔ pending-statement), allows selection, and updates both to "reconciled" with 100% confidence. Backend validates complementary statuses and prevents self-reconciliation.
 
+**Reconciliation Verification (Oct 16, 2025)**:
+- **View Reconciliation Details**: Eye icon button appears on reconciled transactions, opening a dialog that displays both matched transactions side-by-side
+- **Comparison Dialog**: Shows original transaction (ledger/statement) and matched transaction with Date, Name/Depositor, Car, Amount, and Payment Method
+- **Source Identification**: Clearly labels transaction source (Google Sheets, Bank Statement CSV/OFX)
+- **Match Validation**: Visual indicator shows if amounts match exactly, helping verify reconciliation accuracy
+- **Confidence Display**: Shows reconciliation confidence percentage (100% for manual matches)
+- **Backend Support**: GET `/api/transactions/:id/match` endpoint retrieves paired transactions via `matchedTransactionId` field
+
 ### Data Import Pipeline
 
 **Supported Formats**: OFX and CSV for bank/card statements; Google Sheets API for ledger spreadsheets.

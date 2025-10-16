@@ -9,8 +9,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Link2 } from "lucide-react";
+import { MoreVertical, Link2, Eye } from "lucide-react";
 import { formatDateUTC } from "@/lib/dateUtils";
+import { useState } from "react";
+import { ReconciliationDetailsDialog } from "./ReconciliationDetailsDialog";
 
 export interface Transaction {
   id: string;
@@ -31,6 +33,14 @@ interface TransactionTableProps {
 }
 
 export function TransactionTable({ transactions, onSelectionChange, onTransactionClick, onManualReconcile }: TransactionTableProps) {
+  const [reconciliationDialogOpen, setReconciliationDialogOpen] = useState(false);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+
+  const handleViewReconciliation = (transactionId: string) => {
+    setSelectedTransactionId(transactionId);
+    setReconciliationDialogOpen(true);
+  };
+
   const getStatusBadge = (status: Transaction["status"]) => {
     const variants = {
       reconciled: { label: "Reconciled", variant: "default" as const, color: "bg-chart-2 text-white border-chart-2" },
@@ -99,6 +109,17 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-1">
+                  {transaction.status === "reconciled" && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleViewReconciliation(transaction.id)}
+                      data-testid={`button-view-reconciliation-${transaction.id}`}
+                      title="View Reconciliation Details"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  )}
                   {transaction.status !== "reconciled" && onManualReconcile && (
                     <Button
                       variant="ghost"
@@ -124,6 +145,12 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
           ))}
         </TableBody>
       </Table>
+
+      <ReconciliationDetailsDialog
+        open={reconciliationDialogOpen}
+        onOpenChange={setReconciliationDialogOpen}
+        transactionId={selectedTransactionId}
+      />
     </div>
   );
 }
