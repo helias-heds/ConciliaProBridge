@@ -1,6 +1,26 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { readFileSync } from "fs";
+import { resolve } from "path";
+
+// Load .env file manually
+try {
+  const envPath = resolve(process.cwd(), '.env');
+  const envFile = readFileSync(envPath, 'utf-8');
+  envFile.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      const value = valueParts.join('=');
+      if (key && value && !process.env[key]) {
+        process.env[key] = value;
+      }
+    }
+  });
+} catch (err) {
+  console.warn('Could not load .env file:', err);
+}
 
 const app = express();
 app.use(express.json());
