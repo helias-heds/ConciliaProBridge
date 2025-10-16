@@ -5,9 +5,10 @@ import { useState } from "react";
 interface FileUploadZoneProps {
   onFilesSelected?: (files: FileList) => void;
   acceptedFormats: string[];
+  id?: string;
 }
 
-export function FileUploadZone({ onFilesSelected, acceptedFormats }: FileUploadZoneProps) {
+export function FileUploadZone({ onFilesSelected, acceptedFormats, id = 'file-input' }: FileUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -53,11 +54,11 @@ export function FileUploadZone({ onFilesSelected, acceptedFormats }: FileUploadZ
         accept={acceptedFormats.join(",")}
         onChange={handleFileInput}
         className="hidden"
-        id="file-input"
-        data-testid="input-file"
+        id={id}
+        data-testid={`input-file-${id}`}
       />
       <label
-        htmlFor="file-input"
+        htmlFor={id}
         className="text-sm font-medium text-primary cursor-pointer hover:underline"
       >
         Select files

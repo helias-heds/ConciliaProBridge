@@ -164,6 +164,7 @@ export default function Upload() {
           </CardHeader>
           <CardContent>
             <FileUploadZone
+              id="stripe-upload"
               onFilesSelected={(files) => handleFilesSelected(files, 'stripe')}
               acceptedFormats={[".csv"]}
             />
@@ -187,6 +188,7 @@ export default function Upload() {
           </CardHeader>
           <CardContent>
             <FileUploadZone
+              id="bank-upload"
               onFilesSelected={(files) => handleFilesSelected(files, 'bank')}
               acceptedFormats={[".ofx", ".csv"]}
             />
