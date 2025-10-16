@@ -20,14 +20,16 @@ interface UploadedFile {
 
 export default function Upload() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [bankFiles, setBankFiles] = useState<UploadedFile[]>([]);
   const { toast } = useToast();
 
   const uploadMutation = useMutation({
-    mutationFn: async (files: FileList) => {
+    mutationFn: async ({ files, type }: { files: FileList; type: 'stripe' | 'bank' }) => {
       const formData = new FormData();
       Array.from(files).forEach((file) => {
         formData.append("files", file);
       });
+      formData.append("type", type);
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -108,7 +110,7 @@ export default function Upload() {
     },
   });
 
-  const handleFilesSelected = (files: FileList) => {
+  const handleFilesSelected = (files: FileList, type: 'stripe' | 'bank') => {
     const newFiles = Array.from(files).map((file, index) => ({
       id: `${Date.now()}-${index}`,
       name: file.name,
@@ -116,8 +118,12 @@ export default function Upload() {
       status: "uploading" as const,
     }));
 
-    setUploadedFiles((prev) => [...prev, ...newFiles]);
-    uploadMutation.mutate(files);
+    if (type === 'stripe') {
+      setUploadedFiles((prev) => [...prev, ...newFiles]);
+    } else {
+      setBankFiles((prev) => [...prev, ...newFiles]);
+    }
+    uploadMutation.mutate({ files, type });
   };
 
   const formatFileSize = (bytes: number) => {
@@ -151,19 +157,42 @@ export default function Upload() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Statement Upload</CardTitle>
+            <CardTitle>Statement Upload (Stripe)</CardTitle>
             <CardDescription>
-              Upload bank and credit card statements (.ofx, .csv)
+              Upload credit card statements from Stripe (.csv)
             </CardDescription>
           </CardHeader>
           <CardContent>
             <FileUploadZone
-              onFilesSelected={handleFilesSelected}
+              onFilesSelected={(files) => handleFilesSelected(files, 'stripe')}
+              acceptedFormats={[".csv"]}
+            />
+            {uploadMutation.isPending && (
+              <div className="mt-4 space-y-2">
+                <p className="text-sm text-muted-foreground">Processing Stripe files...</p>
+                <Progress value={undefined} className="w-full" />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Bank CSV (Wells Fargo)</CardTitle>
+            <CardDescription>
+              Upload bank statements from Wells Fargo (.csv, .ofx)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FileUploadZone
+              onFilesSelected={(files) => handleFilesSelected(files, 'bank')}
               acceptedFormats={[".ofx", ".csv"]}
             />
             {uploadMutation.isPending && (
               <div className="mt-4 space-y-2">
-                <p className="text-sm text-muted-foreground">Processing files...</p>
+                <p className="text-sm text-muted-foreground">Processing bank files...</p>
                 <Progress value={undefined} className="w-full" />
               </div>
             )}

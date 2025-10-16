@@ -59,16 +59,20 @@ export async function parseOFX(content: string, filename: string): Promise<Parse
   return transactions;
 }
 
-export async function parseCSV(content: string, filename: string): Promise<ParsedTransaction[]> {
+export async function parseCSV(content: string, filename: string, uploadType: string = 'stripe'): Promise<ParsedTransaction[]> {
   return new Promise((resolve, reject) => {
     // First, try to detect if CSV has headers
     const lines = content.trim().split('\n');
     const firstLine = lines[0];
     
-    // Check if first line looks like headers (contains common header words)
-    const hasHeaders = /date|amount|value|description|name|created|captured/i.test(firstLine);
+    // For Stripe (credit card): Check if first line looks like headers
+    // For Bank (Wells Fargo): No headers, direct array parsing
+    const hasHeaders = uploadType === 'stripe' 
+      ? /date|amount|value|description|name|created|captured/i.test(firstLine)
+      : false;
     
     console.log(`\n=== CSV PARSING START: ${filename} ===`);
+    console.log(`Upload type: ${uploadType.toUpperCase()}`);
     console.log(`Detected headers: ${hasHeaders}`);
     
     Papa.parse(content, {
@@ -89,14 +93,14 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
           
           const transactions: ParsedTransaction[] = [];
           
-          // Check if this is a credit card file based on column names (only if has headers)
-          const isCreditCardFile = hasHeaders && results.data.length > 0 && 
-            ((results.data[0] as any).hasOwnProperty('Created date (UTC)') || 
-             (results.data[0] as any).hasOwnProperty('Customer Description') ||
-             (results.data[0] as any).hasOwnProperty('Card ID'));
+          // Determine if this is a credit card or bank file based on uploadType
+          const isCreditCardFile = uploadType === 'stripe';
+          const isBankFile = uploadType === 'bank';
           
           if (isCreditCardFile) {
-            console.log('⚠️ CREDIT CARD FILE DETECTED - Will import only date and value (no names)');
+            console.log('⚠️ STRIPE CREDIT CARD FILE - Will import only date and value (no names)');
+          } else if (isBankFile) {
+            console.log('🏦 WELLS FARGO BANK FILE - Will extract Zelle names from descriptions');
           }
           
           for (const row of results.data as any[]) {
@@ -239,14 +243,14 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
   });
 }
 
-export async function parseFile(file: UploadedFile): Promise<ParsedTransaction[]> {
+export async function parseFile(file: UploadedFile, uploadType: string = 'stripe'): Promise<ParsedTransaction[]> {
   const content = file.buffer.toString("utf-8");
   const filename = file.originalname;
   
   if (filename.toLowerCase().endsWith(".ofx")) {
     return parseOFX(content, filename);
   } else if (filename.toLowerCase().endsWith(".csv")) {
-    return parseCSV(content, filename);
+    return parseCSV(content, filename, uploadType);
   } else {
     throw new Error("Unsupported file format");
   }
