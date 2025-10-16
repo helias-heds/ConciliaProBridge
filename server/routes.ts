@@ -163,9 +163,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingTransactions = await storage.getTransactions();
 
       for (const file of files) {
-        console.log(`Processing file: ${file.originalname}`);
+        console.log(`\n📁 Processing file: ${file.originalname}`);
+        console.log(`📊 File size: ${file.size} bytes (${(file.size / 1024).toFixed(2)} KB)`);
+        const content = file.buffer.toString('utf-8');
+        const lineCount = content.split(/\r?\n/).length;
+        console.log(`📝 Total lines in raw file: ${lineCount}`);
+        
         const parsedTransactions = await parseFile(file, uploadType);
-        console.log(`Parsed ${parsedTransactions.length} transactions from ${file.originalname}`);
+        console.log(`✅ Parsed ${parsedTransactions.length} transactions from ${file.originalname}`);
         
         for (const parsed of parsedTransactions) {
           // Check for duplicates
