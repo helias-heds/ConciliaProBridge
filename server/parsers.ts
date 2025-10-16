@@ -77,9 +77,11 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
           const transactions: ParsedTransaction[] = [];
           
           for (const row of results.data as any[]) {
-            const dateField = row.Date || row.date || row.DATA || row.data;
-            const nameField = row.Description || row.description || row.Name || row.name || row.DESCRICAO || row.descricao;
+            const dateField = row.Date || row.date || row.DATA || row.data || row['Created date (UTC)'] || row['Created Date'] || row['Created date'];
+            const nameField = row.Description || row.description || row.Name || row.name || row.DESCRICAO || row.descricao || row['Customer Description'];
             const valueField = row.Amount || row.amount || row.Value || row.value || row.VALOR || row.valor;
+
+            console.log(`Row check: dateField="${dateField}", nameField="${nameField}", valueField="${valueField}"`);
 
             if (dateField && valueField) {
               let date: Date;
@@ -101,7 +103,10 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
                   date = new Date(year, month, day);
                 }
               } else if (dateField.includes("-")) {
-                date = new Date(dateField);
+                // Handle formats like "2025-10-15" or "2025-10-15 11:48:36"
+                // Extract just the date part if there's a time component
+                const datePart = dateField.split(' ')[0];
+                date = new Date(datePart + 'T12:00:00');
               } else {
                 date = new Date(dateField.substring(0, 4), parseInt(dateField.substring(4, 6)) - 1, parseInt(dateField.substring(6, 8)));
               }
