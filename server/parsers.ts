@@ -117,18 +117,15 @@ export async function parseCSV(content: string, filename: string, uploadType: st
         let line = lines[i].trim();
         if (!line) continue;
         
-        // Fix double quotes issue - replace "" with "
-        // This happens when the file has escaped quotes that get double-escaped
-        if (line.includes('""')) {
-          line = line.replace(/""/g, '"');
-          console.log(`Fixed double quotes in line ${i}`);
+        // Remove outer quotes first (the entire line is wrapped in quotes)
+        while (line.startsWith('"') && line.endsWith('"') && line.length > 1) {
+          line = line.slice(1, -1);
         }
         
-        // Remove leading/trailing quotes if the entire line is quoted
-        if (line.startsWith('"') && line.endsWith('"')) {
-          line = line.slice(1, -1);
-          console.log(`Removed outer quotes from line ${i}`);
-        }
+        // Then fix any remaining double quotes
+        line = line.replace(/""/g, '"');
+        
+        console.log(`Cleaned line ${i}: "${line}"`);
         
         const fields = parseCSVLine(line);
         console.log(`Row ${i} fields (${fields.length}): [${fields.map(f => `"${f}"`).join(', ')}]`);
