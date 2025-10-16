@@ -124,13 +124,27 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
                 }
               } else if (dateField.includes("-")) {
                 // Handle formats like "2025-10-15" or "2025-10-15 11:48:36"
-                // For credit card: discard time, use date at midnight UTC to avoid timezone issues
-                const datePart = dateField.split(' ')[0];
+                const parts = dateField.split(' ');
+                const datePart = parts[0];
+                const timePart = parts[1];
                 const [year, month, day] = datePart.split('-').map(Number);
+                
+                // For credit card: Check if time is in early morning (00:00 - 00:59)
+                // If so, it's actually the previous day (USA timezone -1 hour)
+                let adjustedDay = day;
+                if (isCreditCardFile && timePart) {
+                  const [hour] = timePart.split(':').map(Number);
+                  if (hour === 0) {
+                    // Early morning = previous day
+                    adjustedDay = day - 1;
+                    console.log(`📅 Credit card: Time ${timePart} is early morning, adjusting ${datePart} → ${year}-${month.toString().padStart(2, '0')}-${adjustedDay.toString().padStart(2, '0')}`);
+                  }
+                }
+                
                 // Use Date.UTC to create date at midnight UTC - prevents timezone conversion
-                date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+                date = new Date(Date.UTC(year, month - 1, adjustedDay, 0, 0, 0, 0));
                 if (isCreditCardFile) {
-                  console.log(`📅 Credit card: Using date "${datePart}" at midnight UTC → ${date.toISOString()}`);
+                  console.log(`📅 Credit card: Final date → ${date.toISOString()}`);
                 }
               } else {
                 date = new Date(dateField.substring(0, 4), parseInt(dateField.substring(4, 6)) - 1, parseInt(dateField.substring(6, 8)));
