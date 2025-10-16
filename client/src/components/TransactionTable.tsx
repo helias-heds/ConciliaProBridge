@@ -80,12 +80,7 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
               </TableCell>
               <TableCell>
                 <div className="space-y-0.5">
-                  <div className="font-medium">{transaction.name}</div>
-                  {transaction.depositor && (
-                    <div className="text-sm text-muted-foreground">
-                      Depositor: {transaction.depositor}
-                    </div>
-                  )}
+                  <div className="font-medium">{transaction.depositor || transaction.name}</div>
                   {transaction.car && (
                     <div className="text-sm text-muted-foreground">{transaction.car}</div>
                   )}

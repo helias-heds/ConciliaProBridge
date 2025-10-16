@@ -200,7 +200,7 @@ export default function Transactions() {
                 data-testid={`row-transaction-${t.id}`}
               >
                 <td className="p-4">{t.date.toLocaleDateString()}</td>
-                <td className="p-4">{t.name}</td>
+                <td className="p-4">{t.depositor || t.name}</td>
                 <td className="p-4">{t.car || <span className="text-muted-foreground">-</span>}</td>
                 <td className="p-4">
                   {t.depositor || <span className="text-orange-600 dark:text-orange-400 font-semibold">Empty</span>}
