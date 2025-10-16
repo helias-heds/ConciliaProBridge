@@ -268,19 +268,22 @@ export async function parseCSV(content: string, filename: string, uploadType: st
                 const [year, month, day] = datePart.split('-').map(Number);
                 
                 if (isCreditCardFile) {
-                  // CREDIT CARD: Use UTC + timezone adjustment for early morning
-                  let adjustedDay = day;
-                  if (timePart) {
-                    const [hour] = timePart.split(':').map(Number);
-                    if (hour === 0) {
-                      // Early morning = previous day (USA timezone -1 hour)
-                      adjustedDay = day - 1;
-                      console.log(`📅 Credit card: Time ${timePart} is early morning, adjusting ${datePart} → ${year}-${month.toString().padStart(2, '0')}-${adjustedDay.toString().padStart(2, '0')}`);
-                    }
-                  }
-                  // Use Date.UTC to create date at midnight UTC - prevents timezone conversion
-                  date = new Date(Date.UTC(year, month - 1, adjustedDay, 0, 0, 0, 0));
-                  console.log(`📅 Credit card: Final date → ${date.toISOString()}`);
+                  // CREDIT CARD: Convert UTC to Eastern Time (ET)
+                  // ET is UTC-5 (EST) or UTC-4 (EDT), using UTC-5 for consistency
+                  const utcDate = new Date(`${datePart}T${timePart || '00:00:00'}Z`);
+                  
+                  // Convert to ET by subtracting 5 hours (EST)
+                  const etDate = new Date(utcDate.getTime() - (5 * 60 * 60 * 1000));
+                  
+                  // Extract the date in ET timezone (ignore the time, just get the date)
+                  const etYear = etDate.getUTCFullYear();
+                  const etMonth = etDate.getUTCMonth();
+                  const etDay = etDate.getUTCDate();
+                  
+                  // Store as midnight UTC for the ET date
+                  date = new Date(Date.UTC(etYear, etMonth, etDay, 0, 0, 0, 0));
+                  
+                  console.log(`📅 Credit card: UTC ${datePart} ${timePart || '00:00'} → ET date ${etYear}-${(etMonth+1).toString().padStart(2, '0')}-${etDay.toString().padStart(2, '0')} → Stored as ${date.toISOString()}`);
                 } else {
                   // BANK CSV (Zelle): Use local date without UTC conversion
                   date = new Date(year, month - 1, day);
