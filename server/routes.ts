@@ -154,8 +154,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No files uploaded" });
       }
 
-      const uploadType = req.body.type || 'stripe'; // 'stripe' or 'bank'
-      console.log(`\n📤 UPLOAD TYPE: ${uploadType.toUpperCase()}`);
+      console.log('\n📤 REQUEST BODY:', req.body);
+      const uploadType = req.body.type || 'stripe'; // 'stripe' or 'bank'  
+      console.log(`📤 UPLOAD TYPE: ${uploadType.toUpperCase()}`);
 
       const files = req.files as Express.Multer.File[];
       const allTransactions: any[] = [];
