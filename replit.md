@@ -84,6 +84,13 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
   - "Credit Card" transactions reconcile only with Stripe uploads
   - "Zelle"/"Deposit" transactions reconcile only with Wells Fargo CSV uploads
   - Source prefixing ensures reliable matching regardless of filename
+- **Duplicate Detection (Oct 16, 2025)**: CSV uploads use intelligent duplicate detection to prevent re-importing same data:
+  - Compares only against same source: Wells Fargo vs Wells Fargo, Stripe vs Stripe (never cross-compares with Google Sheets ledger)
+  - Includes reconciled transactions in duplicate check to prevent duplicates after reconciliation
+  - Uses ISO date format (yyyy-mm-dd) for deterministic, timezone-safe comparison
+  - For Credit Card: matches by date + value only
+  - For Zelle/Deposit: matches by date + value + depositor name
+  - Correctly handles installment payments: same depositor/value with different dates are NOT duplicates
 
 ### Configuration Management
 
