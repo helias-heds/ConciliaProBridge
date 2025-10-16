@@ -95,7 +95,8 @@ function parseCSVLine(line: string): string[] {
 export async function parseCSV(content: string, filename: string, uploadType: string = 'stripe'): Promise<ParsedTransaction[]> {
   return new Promise((resolve, reject) => {
     // First, try to detect if CSV has headers
-    const lines = content.trim().split('\n');
+    // Handle both Unix (\n) and Windows (\r\n) line endings
+    const lines = content.trim().split(/\r?\n/);
     const firstLine = lines[0];
     
     // For Stripe (credit card): Check if first line looks like headers
@@ -106,6 +107,7 @@ export async function parseCSV(content: string, filename: string, uploadType: st
     
     console.log(`\n=== CSV PARSING START: ${filename} ===`);
     console.log(`Upload type: ${uploadType.toUpperCase()}`);
+    console.log(`Total lines in file: ${lines.length}`);
     console.log(`Detected headers: ${hasHeaders}`);
     
     // For Wells Fargo (no headers), use manual parser
