@@ -483,6 +483,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/database/clear", async (req, res) => {
+    try {
+      const { keepGoogleSheetsConnection } = req.body;
+      
+      // Delete all transactions
+      const deletedCount = await storage.clearTransactions();
+      
+      let connectionDeleted = false;
+      if (!keepGoogleSheetsConnection) {
+        const connection = await storage.getGoogleSheetsConnection();
+        if (connection) {
+          await storage.deleteGoogleSheetsConnection(connection.id);
+          connectionDeleted = true;
+        }
+      }
+      
+      console.log(`🗑️  Database cleared: ${deletedCount} transactions deleted`);
+      if (connectionDeleted) {
+        console.log(`🗑️  Google Sheets connection removed`);
+      }
+
+      res.json({
+        message: `Database cleared successfully. ${deletedCount} transactions deleted${connectionDeleted ? ', Google Sheets connection removed' : ''}`,
+        transactionsDeleted: deletedCount,
+        connectionDeleted,
+      });
+    } catch (error: any) {
+      console.error("Database clear error:", error);
+      res.status(500).json({ error: error.message || "Failed to clear database" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

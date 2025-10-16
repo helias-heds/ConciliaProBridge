@@ -15,10 +15,12 @@ export interface IStorage {
   createTransactions(transactions: InsertTransaction[]): Promise<Transaction[]>;
   updateTransaction(id: string, transaction: Partial<InsertTransaction>): Promise<Transaction | undefined>;
   deleteTransaction(id: string): Promise<boolean>;
+  clearTransactions(): Promise<number>;
   
   getGoogleSheetsConnection(): Promise<GoogleSheetsConnection | undefined>;
   saveGoogleSheetsConnection(connection: InsertGoogleSheetsConnection): Promise<GoogleSheetsConnection>;
   updateGoogleSheetsConnection(id: string, updates: Partial<GoogleSheetsConnection>): Promise<GoogleSheetsConnection | undefined>;
+  deleteGoogleSheetsConnection(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -71,6 +73,7 @@ export class MemStorage implements IStorage {
       source: insertTransaction.source ?? null,
       paymentMethod: insertTransaction.paymentMethod ?? null,
       matchedTransactionId: insertTransaction.matchedTransactionId ?? null,
+      sheetOrder: insertTransaction.sheetOrder ?? null,
       createdAt: new Date(),
     };
     this.transactions.set(id, transaction);
@@ -100,6 +103,12 @@ export class MemStorage implements IStorage {
 
   async deleteTransaction(id: string): Promise<boolean> {
     return this.transactions.delete(id);
+  }
+
+  async clearTransactions(): Promise<number> {
+    const count = this.transactions.size;
+    this.transactions.clear();
+    return count;
   }
 
   async getGoogleSheetsConnection(): Promise<GoogleSheetsConnection | undefined> {
@@ -135,6 +144,14 @@ export class MemStorage implements IStorage {
     };
 
     return this.googleSheetsConnection;
+  }
+
+  async deleteGoogleSheetsConnection(id: string): Promise<boolean> {
+    if (this.googleSheetsConnection && this.googleSheetsConnection.id === id) {
+      this.googleSheetsConnection = undefined;
+      return true;
+    }
+    return false;
   }
 }
 
@@ -209,6 +226,11 @@ export class DbStorage implements IStorage {
     return results.length > 0;
   }
 
+  async clearTransactions(): Promise<number> {
+    const results = await db.delete(transactions).returning();
+    return results.length;
+  }
+
   async getGoogleSheetsConnection(): Promise<GoogleSheetsConnection | undefined> {
     const results = await db.select().from(googleSheetsConnections).limit(1);
     return results[0];
@@ -232,6 +254,14 @@ export class DbStorage implements IStorage {
       .where(eq(googleSheetsConnections.id, id))
       .returning();
     return results[0];
+  }
+
+  async deleteGoogleSheetsConnection(id: string): Promise<boolean> {
+    const results = await db
+      .delete(googleSheetsConnections)
+      .where(eq(googleSheetsConnections.id, id))
+      .returning();
+    return results.length > 0;
   }
 }
 
