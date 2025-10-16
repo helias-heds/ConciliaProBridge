@@ -202,23 +202,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const sourcePrefix = uploadType === 'stripe' ? 'Stripe' : 'Wells Fargo';
           const enhancedSource = `${sourcePrefix} - ${parsed.source}`;
           
-          // Check for duplicates
-          // For credit card: use date + value only (since cards can have different file names)
-          // For other sources: use date + value + source (to allow same amounts on same day from different sources)
-          const isCreditCard = parsed.paymentMethod === "Credit Card";
-          
+          // Check for duplicates across all sources
+          // Use date + value + depositor/name to detect duplicates between Google Sheets and CSV uploads
           const isDuplicate = existingTransactions.some(existing => {
             const sameDate = new Date(existing.date).toDateString() === parsed.date.toDateString();
             const sameValue = parseFloat(existing.value) === parsed.value;
             
-            if (isCreditCard && existing.paymentMethod === "Credit Card") {
-              // For credit card: match by date + value only
+            // For Credit Card: match by date + value only
+            if (parsed.paymentMethod === "Credit Card") {
               return sameDate && sameValue;
-            } else {
-              // For other sources: match by date + value + enhanced source (with prefix)
-              const sameSource = existing.source === enhancedSource;
-              return sameDate && sameValue && sameSource;
             }
+            
+            // For Zelle/Deposit: match by date + value + depositor (if available)
+            if (parsed.depositor && existing.depositor) {
+              const sameDepositor = parsed.depositor.toLowerCase() === existing.depositor.toLowerCase();
+              return sameDate && sameValue && sameDepositor;
+            }
+            
+            // Fallback: match by date + value + name
+            const sameName = parsed.name.toLowerCase() === existing.name.toLowerCase();
+            return sameDate && sameValue && sameName;
           });
 
           if (isDuplicate) {
