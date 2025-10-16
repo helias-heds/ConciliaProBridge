@@ -124,8 +124,11 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
                 }
               } else if (dateField.includes("-")) {
                 // Handle formats like "2025-10-15" or "2025-10-15 11:48:36"
-                // Extract just the date part if there's a time component
+                // For credit card: discard time, use only date
                 const datePart = dateField.split(' ')[0];
+                if (isCreditCardFile) {
+                  console.log(`📅 Credit card: Discarding time from "${dateField}", using only date: ${datePart}`);
+                }
                 date = new Date(datePart + 'T12:00:00');
               } else {
                 date = new Date(dateField.substring(0, 4), parseInt(dateField.substring(4, 6)) - 1, parseInt(dateField.substring(6, 8)));
