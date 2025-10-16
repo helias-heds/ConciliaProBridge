@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, Receipt, Link2, Upload, Settings, HelpCircle } from "lucide-react";
+import { LayoutDashboard, Receipt, Upload, Settings, HelpCircle } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 const menuItems = [
@@ -21,11 +21,6 @@ const menuItems = [
     title: "Transactions",
     url: "/transactions",
     icon: Receipt,
-  },
-  {
-    title: "Manual Reconciliation",
-    url: "/manual-reconciliation",
-    icon: Link2,
   },
   {
     title: "File Upload",

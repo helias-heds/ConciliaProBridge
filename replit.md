@@ -20,7 +20,6 @@ Preferred communication style: Simple, everyday language.
 **Pages**: 
 - `/` - Dashboard with overview cards and transaction summary
 - `/transactions` - All transactions view with filtering, manual reconciliation filter for transactions with missing depositor info, date range filter for manual reconciliation (added Oct 2025)
-- `/manual-reconciliation` - Dedicated page for manual reconciliation with date filter and reconciliation dialog (added Oct 2025)
 - `/upload` - File upload for bank/card statements and Google Sheets connection
 - `/settings` - Application settings
 - `/help` - Help and documentation
