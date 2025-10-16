@@ -87,6 +87,15 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
           }
           
           for (const row of results.data as any[]) {
+            // For credit card files, skip if not captured (Captured = false)
+            if (isCreditCardFile) {
+              const capturedField = row.Captured || row.captured;
+              if (capturedField && capturedField.toString().toLowerCase() === 'false') {
+                console.log(`⏭️  Skipping uncaptured credit card transaction (Captured=false)`);
+                continue;
+              }
+            }
+            
             const dateField = row.Date || row.date || row.DATA || row.data || row['Created date (UTC)'] || row['Created Date'] || row['Created date'];
             // For credit card files, ignore nameField completely
             const nameField = isCreditCardFile ? undefined : (row.Description || row.description || row.Name || row.name || row.DESCRICAO || row.descricao);
