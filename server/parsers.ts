@@ -269,11 +269,11 @@ export async function parseCSV(content: string, filename: string, uploadType: st
                 
                 if (isCreditCardFile) {
                   // CREDIT CARD: Convert UTC to Eastern Time (ET)
-                  // ET is UTC-5 (EST) or UTC-4 (EDT), using UTC-5 for consistency
+                  // ET is UTC-4 (EDT - Daylight Saving Time) or UTC-5 (EST - Standard Time)
                   const utcDate = new Date(`${datePart}T${timePart || '00:00:00'}Z`);
                   
-                  // Convert to ET by subtracting 5 hours (EST)
-                  const etDate = new Date(utcDate.getTime() - (5 * 60 * 60 * 1000));
+                  // Convert to ET by subtracting 4 hours (EDT - Daylight Saving Time)
+                  const etDate = new Date(utcDate.getTime() - (4 * 60 * 60 * 1000));
                   
                   // Extract the date in ET timezone (ignore the time, just get the date)
                   const etYear = etDate.getUTCFullYear();
@@ -283,7 +283,7 @@ export async function parseCSV(content: string, filename: string, uploadType: st
                   // Store as midnight UTC for the ET date
                   date = new Date(Date.UTC(etYear, etMonth, etDay, 0, 0, 0, 0));
                   
-                  console.log(`📅 Credit card: UTC ${datePart} ${timePart || '00:00'} → ET date ${etYear}-${(etMonth+1).toString().padStart(2, '0')}-${etDay.toString().padStart(2, '0')} → Stored as ${date.toISOString()}`);
+                  console.log(`📅 Credit card: UTC ${datePart} ${timePart || '00:00'} → EDT date ${etYear}-${(etMonth+1).toString().padStart(2, '0')}-${etDay.toString().padStart(2, '0')} → Stored as ${date.toISOString()}`);
                 } else {
                   // BANK CSV (Zelle): Use local date without UTC conversion
                   date = new Date(year, month - 1, day);
