@@ -114,8 +114,13 @@ export async function parseCSV(content: string, filename: string, uploadType: st
       const transactions: ParsedTransaction[] = [];
       
       for (let i = 0; i < lines.length; i++) {
-        const line = lines[i].trim();
+        let line = lines[i].trim();
         if (!line) continue;
+        
+        // Remove trailing comma if present
+        if (line.endsWith(',')) {
+          line = line.slice(0, -1);
+        }
         
         const fields = parseCSVLine(line);
         console.log(`Row ${i}: [${fields.map(f => `"${f}"`).join(', ')}]`);
