@@ -110,79 +110,78 @@ export async function parseCSV(content: string, filename: string, uploadType: st
     console.log(`Total lines in file: ${lines.length}`);
     console.log(`Detected headers: ${hasHeaders}`);
     
-    // For Wells Fargo (no headers), use manual parser
+    // For Wells Fargo (no headers), use PapaParse without headers
     if (!hasHeaders && uploadType === 'bank') {
-      console.log('🔧 Using manual CSV parser for Wells Fargo format');
-      const transactions: ParsedTransaction[] = [];
+      console.log('🔧 Using PapaParse for Wells Fargo format (no headers)');
       
-      for (let i = 0; i < lines.length; i++) {
-        let line = lines[i].trim();
-        if (!line) continue;
-        
-        // Remove outer quotes first (the entire line is wrapped in quotes)
-        while (line.startsWith('"') && line.endsWith('"') && line.length > 1) {
-          line = line.slice(1, -1);
-        }
-        
-        // Then fix any remaining double quotes
-        line = line.replace(/""/g, '"');
-        
-        console.log(`Cleaned line ${i}: "${line}"`);
-        
-        const fields = parseCSVLine(line);
-        console.log(`Row ${i} fields (${fields.length}): [${fields.map(f => `"${f}"`).join(', ')}]`);
-        
-        if (fields.length >= 4) {
-          const dateField = fields[0];  // Column A: Date
-          const valueField = fields[1]; // Column B: Value
-          // Column C (index 2): Empty
-          const description = fields[3]?.trim(); // Column D: Description
+      Papa.parse(content, {
+        header: false,
+        skipEmptyLines: true,
+        delimiter: ',',
+        quoteChar: '"',
+        escapeChar: '"',
+        complete: (results) => {
+          const transactions: ParsedTransaction[] = [];
           
-          console.log(`  → Date: ${dateField}, Value: ${valueField}, Desc: ${description}`);
-          
-          if (dateField && valueField) {
-            try {
-              // Parse date (MM/DD/YY format)
-              const parts = dateField.split("/");
-              let year = parseInt(parts[2]);
-              if (year < 100) year += 2000;
-              const date = new Date(year, parseInt(parts[0]) - 1, parseInt(parts[1]));
+          for (let i = 0; i < results.data.length; i++) {
+            const row = results.data[i] as string[];
+            
+            if (row.length >= 4) {
+              const dateField = row[0]?.trim();  // Column A: Date
+              const valueField = row[1]?.trim(); // Column B: Value
+              // Column C (index 2): Empty
+              const description = row[3]?.trim(); // Column D: Description
               
-              // Parse value (remove quotes if present)
-              const value = Math.abs(parseFloat(valueField.replace(/"/g, '')));
+              console.log(`Row ${i}: Date="${dateField}", Value="${valueField}", Desc="${description}"`);
               
-              // Extract Zelle name from description (between parentheses)
-              let depositor = '';
-              if (description && description.includes('ZELLE FROM')) {
-                // Match text between parentheses after "ZELLE FROM"
-                // Example: "ZELLE FROM (GALHARDO SERGIO) ON 10/10..." -> "GALHARDO SERGIO"
-                const match = description.match(/ZELLE FROM\s*\(([^)]+)\)/i);
-                if (match) {
-                  depositor = match[1].trim();
-                  console.log(`  📝 Extracted depositor name: "${depositor}"`);
+              if (dateField && valueField) {
+                try {
+                  // Parse date (MM/DD/YY format)
+                  const parts = dateField.split("/");
+                  let year = parseInt(parts[2]);
+                  if (year < 100) year += 2000;
+                  const date = new Date(year, parseInt(parts[0]) - 1, parseInt(parts[1]));
+                  
+                  // Parse value (remove quotes if present)
+                  const value = Math.abs(parseFloat(valueField.replace(/"/g, '')));
+                  
+                  // Extract Zelle name from description (between parentheses)
+                  let depositor = '';
+                  if (description && description.includes('ZELLE FROM')) {
+                    // Match text between parentheses after "ZELLE FROM"
+                    // Example: "ZELLE FROM (GALHARDO SERGIO) ON 10/10..." -> "GALHARDO SERGIO"
+                    const match = description.match(/ZELLE FROM\s*\(([^)]+)\)/i);
+                    if (match) {
+                      depositor = match[1].trim();
+                      console.log(`  📝 Extracted depositor name: "${depositor}"`);
+                    }
+                  }
+                  
+                  if (!isNaN(value) && !isNaN(date.getTime())) {
+                    transactions.push({
+                      date,
+                      name: description || 'Bank Transaction',
+                      value,
+                      source: filename,
+                      paymentMethod: description?.includes('ZELLE') ? 'Zelle' : undefined,
+                      depositor: depositor || undefined
+                    });
+                    console.log(`  ✅ Added: ${date.toISOString().split('T')[0]}, $${value}, ${depositor || 'no depositor'}`);
+                  }
+                } catch (err) {
+                  console.log(`  ❌ Failed to parse row: ${err}`);
                 }
               }
-              
-              if (!isNaN(value) && !isNaN(date.getTime())) {
-                transactions.push({
-                  date,
-                  name: description || 'Bank Transaction',
-                  value,
-                  source: filename,
-                  paymentMethod: description?.includes('ZELLE') ? 'Zelle' : undefined,
-                  depositor: depositor || undefined
-                });
-                console.log(`  ✅ Added transaction: ${date.toISOString().split('T')[0]}, $${value}, ${depositor || 'no depositor'}`);
-              }
-            } catch (err) {
-              console.log(`  ❌ Failed to parse row: ${err}`);
             }
           }
+          
+          console.log(`\nPapaParse: ${transactions.length} transactions`);
+          resolve(transactions);
+        },
+        error: (error: any) => {
+          reject(new Error(`Failed to parse CSV: ${error.message}`));
         }
-      }
-      
-      console.log(`\nManual parser: ${transactions.length} transactions`);
-      resolve(transactions);
+      });
       return;
     }
     
