@@ -7,6 +7,7 @@ export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
 export const transactions = pgTable("transactions", {
@@ -21,7 +22,8 @@ export const transactions = pgTable("transactions", {
   source: varchar("source", { length: 100 }),
   paymentMethod: text("payment_method"),
   matchedTransactionId: varchar("matched_transaction_id"),
-  sheetOrder: integer("sheet_order"), // Order in the original spreadsheet (row number)
+  sheetOrder: integer("sheet_order"),
+  userId: varchar("user_id").notNull().default("default-user"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
 });
 
@@ -33,6 +35,7 @@ export const googleSheetsConnections = pgTable("google_sheets_connections", {
   lastImportDate: timestamp("last_import_date"),
   lastImportCount: integer("last_import_count"),
   status: varchar("status", { length: 50 }).default("connected"),
+  userId: varchar("user_id").notNull().default("default-user"),
   createdAt: timestamp("created_at").notNull().default(sql`now()`),
   updatedAt: timestamp("updated_at").notNull().default(sql`now()`),
 });
