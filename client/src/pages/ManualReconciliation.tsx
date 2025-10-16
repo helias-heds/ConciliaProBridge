@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
-import { Calendar, Link2 } from "lucide-react";
+import { Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -14,8 +14,6 @@ import {
 } from "@/components/ui/dialog";
 
 export default function ManualReconciliation() {
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [candidateTransactions, setCandidateTransactions] = useState<any[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -35,38 +33,13 @@ export default function ManualReconciliation() {
   );
 
   // Transactions needing manual reconciliation (missing depositor)
-  const needsManualBase = useMemo(() => 
+  const needsManual = useMemo(() => 
     transactions.filter(t => 
       t.status === "pending-ledger" && 
       (!t.depositor || t.depositor === '')
     ),
     [transactions]
   );
-
-  // Apply date filter
-  const needsManual = useMemo(() => {
-    if (!startDate && !endDate) {
-      return needsManualBase;
-    }
-
-    return needsManualBase.filter(t => {
-      const transactionDate = new Date(t.date);
-      transactionDate.setHours(0, 0, 0, 0);
-      
-      if (startDate && endDate) {
-        const start = new Date(`${startDate}T00:00:00`);
-        const end = new Date(`${endDate}T23:59:59.999`);
-        return transactionDate >= start && transactionDate <= end;
-      } else if (startDate) {
-        const start = new Date(`${startDate}T00:00:00`);
-        return transactionDate >= start;
-      } else if (endDate) {
-        const end = new Date(`${endDate}T23:59:59.999`);
-        return transactionDate <= end;
-      }
-      return true;
-    });
-  }, [needsManualBase, startDate, endDate]);
 
   const reconcileMutation = useMutation({
     mutationFn: async ({ transactionId, matchId }: { transactionId: string; matchId: string }) => {
@@ -129,11 +102,6 @@ export default function ManualReconciliation() {
     });
   };
 
-  const clearDateFilter = () => {
-    setStartDate("");
-    setEndDate("");
-  };
-
   if (isLoading) {
     return (
       <div className="p-6">
@@ -150,71 +118,16 @@ export default function ManualReconciliation() {
         Reconcile transactions with missing depositor information
       </p>
 
-      <div className="grid gap-4 md:grid-cols-2 mb-6">
+      <div className="grid gap-4 md:grid-cols-1 mb-6">
         <div className="p-4 border rounded-lg" data-testid="card-needs-manual">
           <div className="text-sm text-muted-foreground">Needs Manual Reconciliation</div>
           <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-            {needsManualBase.length}
+            {needsManual.length}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             (Missing depositor info)
           </div>
         </div>
-
-        <div className="p-4 border rounded-lg">
-          <div className="text-sm text-muted-foreground">Filtered Results</div>
-          <div className="text-2xl font-bold">
-            {needsManual.length}
-          </div>
-          {(startDate || endDate) && (
-            <div className="text-xs text-muted-foreground mt-1">
-              From {needsManualBase.length} total
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="mb-4 flex flex-wrap gap-2 items-center">
-        <div className="flex items-center gap-2 border rounded-lg p-2">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <label className="text-sm text-muted-foreground">From:</label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => {
-              console.log("From date changed:", e.target.value);
-              setStartDate(e.target.value);
-            }}
-            className="px-2 py-1 border rounded text-sm bg-background"
-            data-testid="input-date-from"
-          />
-          <label className="text-sm text-muted-foreground ml-2">To:</label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => {
-              console.log("To date changed:", e.target.value);
-              setEndDate(e.target.value);
-            }}
-            className="px-2 py-1 border rounded text-sm bg-background"
-            data-testid="input-date-to"
-          />
-          {(startDate || endDate) && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearDateFilter}
-              data-testid="button-clear-date"
-            >
-              Clear
-            </Button>
-          )}
-        </div>
-        {(startDate || endDate) && (
-          <div className="text-sm text-muted-foreground" data-testid="filter-status">
-            Showing {needsManual.length} of {needsManualBase.length} transactions
-          </div>
-        )}
       </div>
 
       <div className="border rounded-lg" data-testid="reconciliation-table">
