@@ -53,6 +53,7 @@ export interface SheetTransaction {
   car?: string;
   depositor?: string;
   value: number;
+  paymentMethod?: string; // Column G: Payment Method
   sheetOrder?: number; // Row number in the spreadsheet
 }
 
@@ -61,12 +62,13 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
   
   // Get all rows using batchGet to avoid API response limits
   // Split into chunks: 0-5000, 5000-10000, 10000-15000 (max 15k to be safe)
+  // Include column G for Payment Method
   const batchResponse = await sheets.spreadsheets.values.batchGet({
     spreadsheetId: sheetId,
     ranges: [
-      'A1:F5000',
-      'A5001:F10000',
-      'A10001:F15000'
+      'A1:G5000',
+      'A5001:G10000',
+      'A10001:G15000'
     ],
   });
 
@@ -145,6 +147,9 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
     
     // Column F: Depositor Name (Nome do Depositor) - index 5
     const depositor = row[5] ? row[5].trim() : undefined;
+    
+    // Column G: Payment Method (Método de Pagamento) - index 6
+    const paymentMethod = row[6] ? row[6].trim() : undefined;
 
     if (isNaN(value)) {
       skippedInvalidValue++;
@@ -158,6 +163,7 @@ export async function importFromGoogleSheets(sheetId: string): Promise<SheetTran
       car,
       depositor,
       value: Math.abs(value),
+      paymentMethod,
       sheetOrder: rowNum, // Store the row number to maintain order
     });
   }

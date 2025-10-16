@@ -71,7 +71,7 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
 **Upload Flow**: Drag-and-drop/selection, client-side validation, server-side parsing and normalization, storage with source tracking, and automatic reconciliation trigger.
 **Google Sheets Integration**: 
 - OAuth authentication managed by Replit
-- Column mapping for Date (A), Value (B), Car (D), Client Name (E), Depositor Name (F)
+- Column mapping for Date (A), Value (B), Car (D), Client Name (E), Depositor Name (F), Payment Method (G)
 - **Date Parsing (Oct 15, 2025)**: Dates parsed as UTC at noon (12:00) to prevent timezone shift issues where day 15 would appear as day 14
 - Handles date/currency parsing and skips invalid rows
 - Uses batchGet with 3 ranges to fetch up to 15,000 rows efficiently
@@ -80,6 +80,10 @@ Specific reconciliation criteria for CSV bank statements with Google Sheets ledg
 - Incremental import using Set-based O(1) duplicate detection with unique key: `date|value|name|depositor`
 - **Row Order Preservation (Oct 15, 2025)**: Each transaction stores its original spreadsheet row number (`sheetOrder` field)
 - **Display Order (Oct 15, 2025)**: Transactions are ordered by reconciliation status (reconciled → pending-ledger → pending-statement), then by **reverse** spreadsheet row order within each status group (most recent entries first, last row of spreadsheet appears at top)
+- **Payment Method Matching (Oct 16, 2025)**: Column G specifies payment method for intelligent reconciliation:
+  - "Credit Card" transactions reconcile only with Stripe uploads
+  - "Zelle"/"Deposit" transactions reconcile only with Wells Fargo CSV uploads
+  - Source prefixing ensures reliable matching regardless of filename
 
 ### Configuration Management
 

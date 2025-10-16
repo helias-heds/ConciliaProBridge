@@ -198,6 +198,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`✅ Parsed ${parsedTransactions.length} transactions from ${file.originalname}`);
         
         for (const parsed of parsedTransactions) {
+          // Prefix source with upload type for reliable reconciliation matching
+          const sourcePrefix = uploadType === 'stripe' ? 'Stripe' : 'Wells Fargo';
+          const enhancedSource = `${sourcePrefix} - ${parsed.source}`;
+          
           // Check for duplicates
           // For credit card: use date + value only (since cards can have different file names)
           // For other sources: use date + value + source (to allow same amounts on same day from different sources)
@@ -211,14 +215,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // For credit card: match by date + value only
               return sameDate && sameValue;
             } else {
-              // For other sources: match by date + value + source
-              const sameSource = existing.source === parsed.source;
+              // For other sources: match by date + value + enhanced source (with prefix)
+              const sameSource = existing.source === enhancedSource;
               return sameDate && sameValue && sameSource;
             }
           });
 
           if (isDuplicate) {
-            console.log(`Skipping duplicate: date=${parsed.date.toISOString()}, value=${parsed.value}, source=${parsed.source}`);
+            console.log(`Skipping duplicate: date=${parsed.date.toISOString()}, value=${parsed.value}, source=${enhancedSource}`);
             continue;
           }
 
@@ -227,7 +231,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             name: parsed.name,
             value: parsed.value.toString(),
             status: "pending-statement",
-            source: parsed.source,
+            source: enhancedSource,
             car: null,
             confidence: null,
             paymentMethod: parsed.paymentMethod || null,
@@ -428,7 +432,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           car: sheetTx.car || null,
           depositor: sheetTx.depositor || null,
           confidence: null,
-          paymentMethod: null,
+          paymentMethod: sheetTx.paymentMethod || null,
           matchedTransactionId: null,
           sheetOrder: sheetTx.sheetOrder || null,
         });

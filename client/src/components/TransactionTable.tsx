@@ -23,6 +23,7 @@ export interface Transaction {
   value: number;
   status: "reconciled" | "pending-ledger" | "pending-statement";
   confidence?: number;
+  paymentMethod?: string;
 }
 
 interface TransactionTableProps {
@@ -73,6 +74,7 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
             </TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Name / Depositor</TableHead>
+            <TableHead>Payment Method</TableHead>
             <TableHead className="text-right">Amount</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="text-center">Confidence</TableHead>
@@ -95,6 +97,15 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
                     <div className="text-sm text-muted-foreground">{transaction.car}</div>
                   )}
                 </div>
+              </TableCell>
+              <TableCell>
+                {transaction.paymentMethod ? (
+                  <Badge variant="outline" className="text-xs" data-testid={`badge-payment-method-${transaction.id}`}>
+                    {transaction.paymentMethod}
+                  </Badge>
+                ) : (
+                  <span className="text-sm text-muted-foreground">-</span>
+                )}
               </TableCell>
               <TableCell className="text-right font-mono tabular-nums">
                 {formatCurrency(transaction.value)}

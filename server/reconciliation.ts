@@ -51,6 +51,33 @@ function getNameSimilarity(name1: string | null, name2: string | null): number {
 }
 
 /**
+ * Check if payment method and source are compatible
+ * Source is prefixed with upload type: "Stripe - filename" or "Wells Fargo - filename"
+ */
+function paymentMethodMatchesSource(sheetPaymentMethod: string | null, csvSource: string | null): boolean {
+  if (!sheetPaymentMethod || !csvSource) {
+    // If no payment method specified, allow matching (legacy behavior)
+    return true;
+  }
+
+  const method = sheetPaymentMethod.toLowerCase().trim();
+  const source = csvSource.toLowerCase();
+
+  // Credit Card → must be from Stripe (check prefix)
+  if (method.includes("credit") || method.includes("card")) {
+    return source.startsWith("stripe");
+  }
+
+  // Zelle or Deposit → must be from Wells Fargo (check prefix)
+  if (method.includes("zelle") || method.includes("deposit")) {
+    return source.startsWith("wells fargo");
+  }
+
+  // Unknown payment method - allow matching
+  return true;
+}
+
+/**
  * Find the best match for a CSV transaction from a list of sheet transactions
  */
 function findBestMatch(
@@ -63,6 +90,12 @@ function findBestMatch(
   for (const sheetTx of sheetTransactions) {
     const reasons: string[] = [];
     let confidence = 0;
+
+    // REQUIRED: Check payment method compatibility with source
+    if (!paymentMethodMatchesSource(sheetTx.paymentMethod, csvTx.source)) {
+      console.log(`[RECONCILE] ❌ SKIPPED: Payment method "${sheetTx.paymentMethod}" incompatible with source "${csvTx.source}"`);
+      continue; // Skip if payment method doesn't match source
+    }
 
     // REQUIRED: Check date match (±2 days)
     if (!datesMatch(new Date(csvTx.date), new Date(sheetTx.date))) {
