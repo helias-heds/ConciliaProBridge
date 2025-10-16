@@ -78,6 +78,9 @@ export async function parseCSV(content: string, filename: string, uploadType: st
     Papa.parse(content, {
       header: hasHeaders,
       skipEmptyLines: true,
+      delimiter: ',',
+      quoteChar: '"',
+      escapeChar: '"',
       complete: (results) => {
         try {
           console.log(`Total rows in CSV: ${results.data.length}`);
