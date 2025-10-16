@@ -117,13 +117,17 @@ export async function parseCSV(content: string, filename: string, uploadType: st
         let line = lines[i].trim();
         if (!line) continue;
         
+        console.log(`Raw line ${i}: "${line}"`);
+        console.log(`Line length: ${line.length}, ends with comma: ${line.endsWith(',')}`);
+        
         // Remove trailing comma if present
         if (line.endsWith(',')) {
           line = line.slice(0, -1);
+          console.log(`After removing comma: "${line}"`);
         }
         
         const fields = parseCSVLine(line);
-        console.log(`Row ${i}: [${fields.map(f => `"${f}"`).join(', ')}]`);
+        console.log(`Row ${i} fields (${fields.length}): [${fields.map(f => `"${f}"`).join(', ')}]`);
         
         if (fields.length >= 4) {
           const dateField = fields[0];
