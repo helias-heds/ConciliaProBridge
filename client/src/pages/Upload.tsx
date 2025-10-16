@@ -21,10 +21,12 @@ interface UploadedFile {
 export default function Upload() {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [bankFiles, setBankFiles] = useState<UploadedFile[]>([]);
+  const [uploadType, setUploadType] = useState<'stripe' | 'bank'>('stripe');
   const { toast } = useToast();
 
   const uploadMutation = useMutation({
     mutationFn: async ({ files, type }: { files: FileList; type: 'stripe' | 'bank' }) => {
+      setUploadType(type);
       const formData = new FormData();
       Array.from(files).forEach((file) => {
         formData.append("files", file);
@@ -50,13 +52,18 @@ export default function Upload() {
         description: data.message || `Imported ${data.count} transactions`,
       });
       
-      setUploadedFiles((prev) =>
+      const updateFn = (prev: UploadedFile[]) =>
         prev.map((file) =>
           file.status === "uploading"
-            ? { ...file, status: "success", message: "Processed successfully" }
+            ? { ...file, status: "success" as const, message: "Processed successfully" }
             : file
-        )
-      );
+        );
+
+      if (uploadType === 'stripe') {
+        setUploadedFiles(updateFn);
+      } else {
+        setBankFiles(updateFn);
+      }
 
       queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
     },
@@ -67,13 +74,18 @@ export default function Upload() {
         description: error.message || "Failed to process files",
       });
 
-      setUploadedFiles((prev) =>
+      const updateFn = (prev: UploadedFile[]) =>
         prev.map((file) =>
           file.status === "uploading"
-            ? { ...file, status: "error", message: error.message }
+            ? { ...file, status: "error" as const, message: error.message }
             : file
-        )
-      );
+        );
+
+      if (uploadType === 'stripe') {
+        setUploadedFiles(updateFn);
+      } else {
+        setBankFiles(updateFn);
+      }
     },
   });
 
@@ -239,13 +251,47 @@ export default function Upload() {
         <>
           <Separator />
           <div>
-            <h2 className="text-xl font-semibold mb-4">Upload History</h2>
+            <h2 className="text-xl font-semibold mb-4">Stripe Upload History</h2>
             <div className="space-y-2">
               {uploadedFiles.map((file) => (
                 <div
                   key={file.id}
                   className="flex items-center justify-between p-4 border rounded-md hover-elevate"
                   data-testid={`file-item-${file.id}`}
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    {getStatusIcon(file.status)}
+                    <div className="flex-1">
+                      <p className="font-medium">{file.name}</p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span>{formatFileSize(file.size)}</span>
+                        {file.message && (
+                          <>
+                            <span>•</span>
+                            <span>{file.message}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {bankFiles.length > 0 && (
+        <>
+          <Separator />
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Bank Upload History</h2>
+            <div className="space-y-2">
+              {bankFiles.map((file) => (
+                <div
+                  key={file.id}
+                  className="flex items-center justify-between p-4 border rounded-md hover-elevate"
+                  data-testid={`bank-file-item-${file.id}`}
                 >
                   <div className="flex items-center gap-3 flex-1">
                     {getStatusIcon(file.status)}
