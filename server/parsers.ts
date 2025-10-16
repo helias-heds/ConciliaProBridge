@@ -59,6 +59,39 @@ export async function parseOFX(content: string, filename: string): Promise<Parse
   return transactions;
 }
 
+// Manual CSV parser that handles quoted fields correctly
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        // Escaped quote
+        current += '"';
+        i++; // Skip next quote
+      } else {
+        // Toggle quote mode
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      // End of field
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  
+  // Add last field
+  result.push(current);
+  
+  return result;
+}
+
 export async function parseCSV(content: string, filename: string, uploadType: string = 'stripe'): Promise<ParsedTransaction[]> {
   return new Promise((resolve, reject) => {
     // First, try to detect if CSV has headers
@@ -75,6 +108,69 @@ export async function parseCSV(content: string, filename: string, uploadType: st
     console.log(`Upload type: ${uploadType.toUpperCase()}`);
     console.log(`Detected headers: ${hasHeaders}`);
     
+    // For Wells Fargo (no headers), use manual parser
+    if (!hasHeaders && uploadType === 'bank') {
+      console.log('🔧 Using manual CSV parser for Wells Fargo format');
+      const transactions: ParsedTransaction[] = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const fields = parseCSVLine(line);
+        console.log(`Row ${i}: [${fields.map(f => `"${f}"`).join(', ')}]`);
+        
+        if (fields.length >= 4) {
+          const dateField = fields[0];
+          const valueField = fields[1];
+          const description = fields[3];
+          
+          console.log(`  → Date: ${dateField}, Value: ${valueField}, Desc: ${description}`);
+          
+          if (dateField && valueField) {
+            try {
+              // Parse date (MM/DD/YY format)
+              const parts = dateField.split("/");
+              let year = parseInt(parts[2]);
+              if (year < 100) year += 2000;
+              const date = new Date(year, parseInt(parts[0]) - 1, parseInt(parts[1]));
+              
+              // Parse value (remove quotes if present)
+              const value = Math.abs(parseFloat(valueField.replace(/"/g, '')));
+              
+              // Extract Zelle name from description
+              let depositor = '';
+              if (description && description.includes('ZELLE FROM')) {
+                const match = description.match(/ZELLE FROM ([^O]+?)(?:\sON\s)/i);
+                if (match) {
+                  depositor = match[1].trim();
+                }
+              }
+              
+              if (!isNaN(value) && !isNaN(date.getTime())) {
+                transactions.push({
+                  date,
+                  name: description || 'Bank Transaction',
+                  value,
+                  source: filename,
+                  paymentMethod: description?.includes('ZELLE') ? 'Zelle' : undefined,
+                  depositor: depositor || undefined
+                });
+                console.log(`  ✅ Added transaction: ${date.toISOString().split('T')[0]}, $${value}, ${depositor || 'no depositor'}`);
+              }
+            } catch (err) {
+              console.log(`  ❌ Failed to parse row: ${err}`);
+            }
+          }
+        }
+      }
+      
+      console.log(`\nManual parser: ${transactions.length} transactions`);
+      resolve(transactions);
+      return;
+    }
+    
+    // For other files, use PapaParse
     Papa.parse(content, {
       header: hasHeaders,
       skipEmptyLines: true,
