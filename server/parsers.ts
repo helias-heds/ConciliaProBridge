@@ -70,18 +70,29 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
           console.log(`Total rows in CSV: ${results.data.length}`);
           
           if (results.data.length > 0) {
-            console.log('First row columns:', Object.keys(results.data[0]));
+            console.log('First row columns:', Object.keys(results.data[0] as any));
             console.log('First row sample:', results.data[0]);
           }
           
           const transactions: ParsedTransaction[] = [];
           
+          // Check if this is a credit card file based on column names
+          const isCreditCardFile = results.data.length > 0 && 
+            ((results.data[0] as any).hasOwnProperty('Created date (UTC)') || 
+             (results.data[0] as any).hasOwnProperty('Customer Description') ||
+             (results.data[0] as any).hasOwnProperty('Card ID'));
+          
+          if (isCreditCardFile) {
+            console.log('⚠️ CREDIT CARD FILE DETECTED - Will import only date and value (no names)');
+          }
+          
           for (const row of results.data as any[]) {
             const dateField = row.Date || row.date || row.DATA || row.data || row['Created date (UTC)'] || row['Created Date'] || row['Created date'];
-            const nameField = row.Description || row.description || row.Name || row.name || row.DESCRICAO || row.descricao || row['Customer Description'];
+            // For credit card files, ignore nameField completely
+            const nameField = isCreditCardFile ? undefined : (row.Description || row.description || row.Name || row.name || row.DESCRICAO || row.descricao);
             const valueField = row.Amount || row.amount || row.Value || row.value || row.VALOR || row.valor;
 
-            console.log(`Row check: dateField="${dateField}", nameField="${nameField}", valueField="${valueField}"`);
+            console.log(`Row check: dateField="${dateField}", nameField="${nameField}", valueField="${valueField}", isCreditCard=${isCreditCardFile}`);
 
             if (dateField && valueField) {
               let date: Date;
