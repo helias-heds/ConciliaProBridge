@@ -145,12 +145,12 @@ export async function parseCSV(content: string, filename: string, uploadType: st
                   // Parse value (remove quotes if present)
                   const value = Math.abs(parseFloat(valueField.replace(/"/g, '')));
                   
-                  // Extract Zelle name from description (between parentheses)
+                  // Extract Zelle name from description (between "ZELLE FROM" and "ON")
                   let depositor = '';
                   if (description && description.includes('ZELLE FROM')) {
-                    // Match text between parentheses after "ZELLE FROM"
-                    // Example: "ZELLE FROM (GALHARDO SERGIO) ON 10/10..." -> "GALHARDO SERGIO"
-                    const match = description.match(/ZELLE FROM\s*\(([^)]+)\)/i);
+                    // Match text between "ZELLE FROM" and "ON"
+                    // Example: "ZELLE FROM GALHARDO SERGIO ON 08/09..." -> "GALHARDO SERGIO"
+                    const match = description.match(/ZELLE FROM\s+(.+?)\s+ON/i);
                     if (match) {
                       depositor = match[1].trim();
                       console.log(`  📝 Extracted depositor name: "${depositor}"`);
