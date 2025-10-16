@@ -61,23 +61,36 @@ export async function parseOFX(content: string, filename: string): Promise<Parse
 
 export async function parseCSV(content: string, filename: string): Promise<ParsedTransaction[]> {
   return new Promise((resolve, reject) => {
+    // First, try to detect if CSV has headers
+    const lines = content.trim().split('\n');
+    const firstLine = lines[0];
+    
+    // Check if first line looks like headers (contains common header words)
+    const hasHeaders = /date|amount|value|description|name|created|captured/i.test(firstLine);
+    
+    console.log(`\n=== CSV PARSING START: ${filename} ===`);
+    console.log(`Detected headers: ${hasHeaders}`);
+    
     Papa.parse(content, {
-      header: true,
+      header: hasHeaders,
       skipEmptyLines: true,
       complete: (results) => {
         try {
-          console.log(`\n=== CSV PARSING START: ${filename} ===`);
           console.log(`Total rows in CSV: ${results.data.length}`);
           
           if (results.data.length > 0) {
-            console.log('First row columns:', Object.keys(results.data[0] as any));
-            console.log('First row sample:', results.data[0]);
+            if (hasHeaders) {
+              console.log('First row columns:', Object.keys(results.data[0] as any));
+              console.log('First row sample:', results.data[0]);
+            } else {
+              console.log('First row (no headers):', results.data[0]);
+            }
           }
           
           const transactions: ParsedTransaction[] = [];
           
-          // Check if this is a credit card file based on column names
-          const isCreditCardFile = results.data.length > 0 && 
+          // Check if this is a credit card file based on column names (only if has headers)
+          const isCreditCardFile = hasHeaders && results.data.length > 0 && 
             ((results.data[0] as any).hasOwnProperty('Created date (UTC)') || 
              (results.data[0] as any).hasOwnProperty('Customer Description') ||
              (results.data[0] as any).hasOwnProperty('Card ID'));
@@ -87,19 +100,31 @@ export async function parseCSV(content: string, filename: string): Promise<Parse
           }
           
           for (const row of results.data as any[]) {
-            // For credit card files, skip if not captured (Captured = false)
-            if (isCreditCardFile) {
-              const capturedField = row.Captured || row.captured;
-              if (capturedField && capturedField.toString().toLowerCase() === 'false') {
-                console.log(`⏭️  Skipping uncaptured credit card transaction (Captured=false)`);
-                continue;
-              }
-            }
+            let dateField, nameField, valueField;
             
-            const dateField = row.Date || row.date || row.DATA || row.data || row['Created date (UTC)'] || row['Created Date'] || row['Created date'];
-            // For credit card files, ignore nameField completely
-            const nameField = isCreditCardFile ? undefined : (row.Description || row.description || row.Name || row.name || row.DESCRICAO || row.descricao);
-            const valueField = row.Amount || row.amount || row.Value || row.value || row.VALOR || row.valor;
+            if (hasHeaders) {
+              // CSV with headers - access by column name
+              // For credit card files, skip if not captured (Captured = false)
+              if (isCreditCardFile) {
+                const capturedField = row.Captured || row.captured;
+                if (capturedField && capturedField.toString().toLowerCase() === 'false') {
+                  console.log(`⏭️  Skipping uncaptured credit card transaction (Captured=false)`);
+                  continue;
+                }
+              }
+              
+              dateField = row.Date || row.date || row.DATA || row.data || row['Created date (UTC)'] || row['Created Date'] || row['Created date'];
+              // For credit card files, ignore nameField completely
+              nameField = isCreditCardFile ? undefined : (row.Description || row.description || row.Name || row.name || row.DESCRICAO || row.descricao);
+              valueField = row.Amount || row.amount || row.Value || row.value || row.VALOR || row.valor;
+            } else {
+              // CSV without headers - access by array index
+              // Format: date, value, empty, description
+              // Example: 10/09/25,"-4363.67","","GUSTO NET..."
+              dateField = row[0];
+              valueField = row[1];
+              nameField = row[3]; // Description is at index 3
+            }
 
             console.log(`Row check: dateField="${dateField}", nameField="${nameField}", valueField="${valueField}", isCreditCard=${isCreditCardFile}`);
 
