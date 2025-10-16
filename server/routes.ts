@@ -186,6 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const files = req.files as Express.Multer.File[];
       const allTransactions: any[] = [];
       const existingTransactions = await storage.getTransactions();
+      let duplicateCount = 0;
 
       for (const file of files) {
         console.log(`\n📁 Processing file: ${file.originalname}`);
@@ -225,7 +226,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
           if (isDuplicate) {
-            console.log(`Skipping duplicate: date=${parsed.date.toISOString()}, value=${parsed.value}, source=${enhancedSource}`);
+            duplicateCount++;
+            console.log(`⏭️  Skipping duplicate #${duplicateCount}: ${parsed.date.toISOString().split('T')[0]}, $${parsed.value}, depositor="${parsed.depositor || parsed.name}"`);
             continue;
           }
 
@@ -245,11 +247,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      console.log(`Total imported: ${allTransactions.length} transactions (after duplicate filtering)`);
+      console.log(`\n📊 IMPORT SUMMARY:`);
+      console.log(`   ✅ New transactions: ${allTransactions.length}`);
+      console.log(`   ⏭️  Duplicates skipped: ${duplicateCount}`);
+      console.log(`   📁 Total processed: ${allTransactions.length + duplicateCount}`);
 
       res.status(201).json({
-        message: `Successfully imported ${allTransactions.length} transactions from ${files.length} file(s)`,
+        message: `Successfully imported ${allTransactions.length} new transactions (${duplicateCount} duplicates skipped)`,
         count: allTransactions.length,
+        duplicates: duplicateCount,
         transactions: allTransactions,
       });
     } catch (error: any) {
