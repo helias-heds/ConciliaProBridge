@@ -9,9 +9,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
-import { enUS } from "date-fns/locale";
 import { MoreVertical, Link2 } from "lucide-react";
+import { formatDateUTC } from "@/lib/dateUtils";
 
 export interface Transaction {
   id: string;
@@ -77,7 +76,7 @@ export function TransactionTable({ transactions, onSelectionChange, onTransactio
                 <Checkbox data-testid={`checkbox-transaction-${transaction.id}`} />
               </TableCell>
               <TableCell className="font-mono text-sm">
-                {format(transaction.date, "MM/dd/yyyy", { locale: enUS })}
+                {formatDateUTC(transaction.date)}
               </TableCell>
               <TableCell>
                 <div className="space-y-0.5">

@@ -8,9 +8,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { enUS } from "date-fns/locale";
 import { RotateCcw, Trash2 } from "lucide-react";
+import { formatDateUTC } from "@/lib/dateUtils";
 import type { Transaction } from "./TransactionTable";
 
 interface TrashedTransaction extends Transaction {
@@ -81,7 +80,7 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
             return (
               <TableRow key={transaction.id} data-testid={`row-trash-${transaction.id}`}>
                 <TableCell className="font-mono text-sm">
-                  {format(transaction.date, "MM/dd/yyyy", { locale: enUS })}
+                  {formatDateUTC(transaction.date)}
                 </TableCell>
                 <TableCell>
                   <div className="space-y-0.5">
@@ -95,7 +94,13 @@ export function TrashView({ trashedTransactions, onRestore, onPermanentDelete }:
                   {formatCurrency(transaction.value)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {format(transaction.deletedAt, "MM/dd/yyyy HH:mm", { locale: enUS })}
+                  {(() => {
+                    const dateStr = transaction.deletedAt.toISOString();
+                    const [datePart, timePart] = dateStr.split('T');
+                    const [year, month, day] = datePart.split('-');
+                    const [hour, minute] = timePart.split(':');
+                    return `${month}/${day}/${year} ${hour}:${minute}`;
+                  })()}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant={daysRemaining <= 3 ? "destructive" : "secondary"}>

@@ -8,8 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { enUS } from "date-fns/locale";
+import { formatDateUTC } from "@/lib/dateUtils";
 import { CheckCircle2, Calendar } from "lucide-react";
 import { Transaction } from "./TransactionTable";
 
@@ -99,7 +98,7 @@ export function ManualReconcileDialog({
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground">Date:</span>{" "}
-                {format(transaction.date, "MM/dd/yyyy", { locale: enUS })}
+                {formatDateUTC(transaction.date)}
               </div>
               <div>
                 <span className="text-muted-foreground">Amount:</span>{" "}
@@ -182,7 +181,7 @@ export function ManualReconcileDialog({
                       <div className="flex-1 grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                         <div>
                           <span className="text-muted-foreground">Date:</span>{" "}
-                          {format(candidate.date, "MM/dd/yyyy", { locale: enUS })}
+                          {formatDateUTC(candidate.date)}
                         </div>
                         <div>
                           <span className="text-muted-foreground">Amount:</span>{" "}

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, Clock, AlertCircle, Trash2, Save } from "lucide-react";
-import { format } from "date-fns";
+import { formatDateUTC } from "@/lib/dateUtils";
 
 export interface Transaction {
   id: string;
@@ -50,7 +50,7 @@ export function TransactionSheet({
   const [car, setCar] = useState(transaction?.car || "");
   const [depositor, setDepositor] = useState(transaction?.depositor || "");
   const [date, setDate] = useState(
-    transaction?.date ? format(transaction.date, "yyyy-MM-dd") : ""
+    transaction?.date ? formatDateUTC(transaction.date, "yyyy-MM-dd") : ""
   );
   const [value, setValue] = useState(transaction?.value.toString() || "");
   const [status, setStatus] = useState<Transaction["status"]>(
@@ -62,7 +62,7 @@ export function TransactionSheet({
     setName(transaction.name);
     setCar(transaction.car);
     setDepositor(transaction.depositor || "");
-    setDate(format(transaction.date, "yyyy-MM-dd"));
+    setDate(formatDateUTC(transaction.date, "yyyy-MM-dd"));
     setValue(transaction.value.toString());
     setStatus(transaction.status);
     (transaction as any)._lastId = transaction.id;
