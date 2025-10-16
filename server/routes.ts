@@ -164,12 +164,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Parsed ${parsedTransactions.length} transactions from ${file.originalname}`);
         
         for (const parsed of parsedTransactions) {
-          // Check for duplicates based on date, value, and source
+          // Check for duplicates
+          // For credit card: use date + value only (since cards can have different file names)
+          // For other sources: use date + value + source (to allow same amounts on same day from different sources)
+          const isCreditCard = parsed.paymentMethod === "Credit Card";
+          
           const isDuplicate = existingTransactions.some(existing => {
             const sameDate = new Date(existing.date).toDateString() === parsed.date.toDateString();
             const sameValue = parseFloat(existing.value) === parsed.value;
-            const sameSource = existing.source === parsed.source;
-            return sameDate && sameValue && sameSource;
+            
+            if (isCreditCard && existing.paymentMethod === "Credit Card") {
+              // For credit card: match by date + value only
+              return sameDate && sameValue;
+            } else {
+              // For other sources: match by date + value + source
+              const sameSource = existing.source === parsed.source;
+              return sameDate && sameValue && sameSource;
+            }
           });
 
           if (isDuplicate) {
