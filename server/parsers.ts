@@ -132,11 +132,11 @@ export async function parseCSV(content: string, filename: string, uploadType: st
         const fields = parseCSVLine(line);
         console.log(`Row ${i} fields (${fields.length}): [${fields.map(f => `"${f}"`).join(', ')}]`);
         
-        if (fields.length >= 3) {
-          const dateField = fields[0];
-          const valueField = fields[1];
-          // Description is in field 3 (index 2), but it starts with comma - clean it
-          const description = fields[2]?.replace(/^,/, '').replace(/,$/, '').trim();
+        if (fields.length >= 4) {
+          const dateField = fields[0];  // Column A: Date
+          const valueField = fields[1]; // Column B: Value
+          // Column C (index 2): Empty
+          const description = fields[3]?.trim(); // Column D: Description
           
           console.log(`  → Date: ${dateField}, Value: ${valueField}, Desc: ${description}`);
           
