@@ -1,38 +1,36 @@
 # 🚀 Como Rodar o Sistema
 
-## ⚠️ AÇÃO NECESSÁRIA: Configurar Senha do Banco
+## ✅ BANCO DE DADOS JÁ CONFIGURADO!
 
-Antes de rodar o sistema, você precisa adicionar a senha do banco de dados Supabase:
+A senha do banco já está configurada no `.env`. Basta rodar o sistema!
 
-### Passo 1: Obter a Senha do Supabase
+### Como Iniciar o Sistema
 
-1. Acesse: https://supabase.com/dashboard/project/dpjtszxmoxbijzjgotkq/settings/database
-2. Na seção "Connection string", você verá a senha ou pode clicar em "Reset database password"
-3. Copie a senha
-
-### Passo 2: Configurar o .env
-
-Abra o arquivo `.env` e substitua `[YOUR_DB_PASSWORD]` pela senha real:
+Execute o script de inicialização:
 
 ```bash
-DATABASE_URL=postgresql://postgres.dpjtszxmoxbijzjgotkq:SUA_SENHA_AQUI@aws-0-us-east-1.pooler.supabase.com:6543/postgres
+./start-dev.sh
 ```
 
-### Passo 3: Aplicar as Migrações SQL
+**OU** execute diretamente com o comando completo:
+
+```bash
+NODE_ENV=development ./node_modules/.bin/tsx server/index.ts
+```
+
+O sistema estará disponível em: **http://localhost:5000**
+
+---
+
+## 📋 Próximo Passo: Aplicar as Migrações SQL
+
+Antes de usar o sistema completamente, execute as migrações no Supabase:
 
 1. Acesse: https://supabase.com/dashboard/project/dpjtszxmoxbijzjgotkq/editor
 2. Execute cada arquivo SQL em ordem:
    - `supabase/migrations/20250116_001_create_users_table.sql`
    - `supabase/migrations/20250116_002_create_transactions_table.sql`
    - `supabase/migrations/20250116_003_create_google_sheets_connections_table.sql`
-
-### Passo 4: Rodar o Sistema
-
-```bash
-npm run dev
-```
-
-O sistema estará disponível em: http://localhost:5000
 
 ## 📁 Estrutura Criada
 
